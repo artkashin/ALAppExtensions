@@ -13,7 +13,6 @@ codeunit 138077 "Tenant License State Test"
     // as part of the same process.
 
     Subtype = Test;
-    TestPermissions = Restrictive;
 
     trigger OnRun()
     begin
@@ -23,6 +22,7 @@ codeunit 138077 "Tenant License State Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        PermissionsMock: Codeunit "Permissions Mock";
         InsertionDelay: Integer;
 
     [Test]
@@ -39,7 +39,8 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a license state with the datetime value
         // [WHEN] Retrieving the start date of the last inserted license state
-        InsertLicenseState("Tenant License State"::Evaluation, CurrentDate);
+        InsertLicenseState("Tenant License State"::Evaluation.AsInteger(), CurrentDate);
+        PermissionsMock.Set('Tenant License Read');
         StartDate := TenantLicenseState.GetStartDate();
 
         // [THEN] The start date of the license state is the given datetime value
@@ -56,7 +57,8 @@ codeunit 138077 "Tenant License State Test"
     begin
         // [WHEN] Inserting a trial license state
         // [WHEN] Retrieving the end date of the last inserted license state
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime());
+        PermissionsMock.Set('Tenant License Read');
         EndDate := TenantLicenseState.GetEndDate();
 
         // [THEN] The end time of the license state is set
@@ -73,7 +75,8 @@ codeunit 138077 "Tenant License State Test"
     begin
         // [WHEN] Inserting an evaluation license state
         // [WHEN] Retrieving whether the last inserted license state is an evaluation one
-        InsertLicenseState("Tenant License State"::Evaluation, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Evaluation.AsInteger(), CurrentDateTime());
+        PermissionsMock.Set('Tenant License Read');
         IsEvaluationMode := TenantLicenseState.IsEvaluationMode();
 
         // [THEN] The check returns true
@@ -81,7 +84,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a paid license state
         // [WHEN] Checking whether the license state is evaluation
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime() + InsertionDelay);
         IsEvaluationMode := TenantLicenseState.IsEvaluationMode();
 
         // [THEN] The check returns false
@@ -98,7 +101,8 @@ codeunit 138077 "Tenant License State Test"
     begin
         // [WHEN] Inserting a trial license state
         // [WHEN] Checking whether the license state is trial
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime());
+        PermissionsMock.Set('Tenant License Read');
         IsTrialMode := TenantLicenseState.IsTrialMode();
 
         // [THEN] The check returns true
@@ -106,7 +110,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a suspended license state
         // [WHEN] Checking whether the license state is trial
-        InsertLicenseState("Tenant License State"::Suspended, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Suspended.AsInteger(), CurrentDateTime() + InsertionDelay);
         IsTrialMode := TenantLicenseState.IsTrialMode();
 
         // [THEN] The check returns false
@@ -124,8 +128,9 @@ codeunit 138077 "Tenant License State Test"
         // [WHEN] Inserting a trial license state
         // [WHEN] Inserting a suspended license state after the trial license state has been inserted
         // [WHEN] Checking whether the license is in trial suspended mode
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime());
-        InsertLicenseState("Tenant License State"::Suspended, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Suspended.AsInteger(), CurrentDateTime() + InsertionDelay);
+        PermissionsMock.Set('Tenant License Read');
         IsTrialSuspendedMode := TenantLicenseState.IsTrialSuspendedMode();
 
         // [THEN] The check returns true
@@ -133,7 +138,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a paid license state after the suspended license state has been inserted
         // [WHEN] Checking whether the license is in trial suspended mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime() + 2 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime() + 2 * InsertionDelay);
         IsTrialSuspendedMode := TenantLicenseState.IsTrialSuspendedMode();
 
         // [THEN] The check returns false
@@ -150,7 +155,9 @@ codeunit 138077 "Tenant License State Test"
     begin
         // [WHEN] Inserting a trial license state
         // [WHEN] Checking whether the license is in trial suspended mode
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime());
+        PermissionsMock.Set('Tenant License Read');
+
         IsTrialExtendedMode := TenantLicenseState.IsTrialExtendedMode();
 
         // [THEN] The check returns false
@@ -158,7 +165,8 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting another trial license state
         // [WHEN] Checking whether the license is in trial extended mode
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime() + InsertionDelay);
+
         IsTrialExtendedMode := TenantLicenseState.IsTrialExtendedMode();
 
         // [THEN] The check returns true
@@ -166,7 +174,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a paid license state after the two trial license states
         // [WHEN] Checking whether the license is in trial extended mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime() + 2 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime() + 2 * InsertionDelay);
         IsTrialExtendedMode := TenantLicenseState.IsTrialExtendedMode();
 
         // [THEN] The check returns false
@@ -181,10 +189,11 @@ codeunit 138077 "Tenant License State Test"
         TenantLicenseState: Codeunit "Tenant License State";
         IsTrialExtendedSuspendedMode: Boolean;
     begin
+        PermissionsMock.Set('Tenant License Read');
         // [WHEN] Inserting two trial license states
         // [WHEN] Checking whether the license is in extended suspended mode
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime());
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime() + InsertionDelay);
         IsTrialExtendedSuspendedMode := TenantLicenseState.IsTrialExtendedSuspendedMode();
 
         // [THEN] The check returns false
@@ -192,7 +201,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a suspended license state after the two trial ones
         // [WHEN] Checking whether the license is in extended suspended mode
-        InsertLicenseState("Tenant License State"::Suspended, CurrentDateTime() + 2 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Suspended.AsInteger(), CurrentDateTime() + 2 * InsertionDelay);
         IsTrialExtendedSuspendedMode := TenantLicenseState.IsTrialExtendedSuspendedMode();
 
         // [THEN] The check returns true
@@ -200,7 +209,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a trial license state after the suspended one
         // [WHEN] Checking whether the license is in extended suspended mode
-        InsertLicenseState("Tenant License State"::Trial, CurrentDateTime() + 3 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Trial.AsInteger(), CurrentDateTime() + 3 * InsertionDelay);
         IsTrialExtendedSuspendedMode := TenantLicenseState.IsTrialExtendedSuspendedMode();
 
         // [THEN] The check returns false
@@ -215,9 +224,10 @@ codeunit 138077 "Tenant License State Test"
         TenantLicenseState: Codeunit "Tenant License State";
         IsPaidMode: Boolean;
     begin
+        PermissionsMock.Set('Tenant License Read');
         // [WHEN] Inserting a paid license state
         // [WHEN] Checking whether the license is in paid mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime());
         IsPaidMode := TenantLicenseState.IsPaidMode();
 
         // [THEN] The check returns true
@@ -225,7 +235,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a suspended license state after the paid one
         // [WHEN] Checking whether the license is in paid mode
-        InsertLicenseState("Tenant License State"::Suspended, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Suspended.AsInteger(), CurrentDateTime() + InsertionDelay);
         IsPaidMode := TenantLicenseState.IsPaidMode();
 
         // [THEN] The check returns false
@@ -240,9 +250,10 @@ codeunit 138077 "Tenant License State Test"
         TenantLicenseState: Codeunit "Tenant License State";
         IsPaidWarningMode: Boolean;
     begin
+        PermissionsMock.Set('Tenant License Read');
         // [WHEN] Inserting a paid license state
         // [WHEN] Checking whether the license is in paid warning mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime());
         IsPaidWarningMode := TenantLicenseState.IsPaidWarningMode();
 
         // [THEN] The check returns false
@@ -250,7 +261,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a warning license state after the paid one
         // [WHEN] Checking whether the license is in paid warning mode
-        InsertLicenseState("Tenant License State"::Warning, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Warning.AsInteger(), CurrentDateTime() + InsertionDelay);
         IsPaidWarningMode := TenantLicenseState.IsPaidWarningMode();
 
         // [THEN] The check returns true
@@ -258,7 +269,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting another paid license state after the warning one
         // [WHEN] Checking whether the license is in paid warning mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime() + 2 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime() + 2 * InsertionDelay);
         IsPaidWarningMode := TenantLicenseState.IsPaidWarningMode();
 
         // [THEN] The check returns false
@@ -275,7 +286,9 @@ codeunit 138077 "Tenant License State Test"
     begin
         // [WHEN] Inserting a paid license state
         // [WHEN] Checking whether the license is in paid suspended mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime());
+
+        PermissionsMock.Set('Tenant License Read');
         IsPaidSuspendedMode := TenantLicenseState.IsPaidSuspendedMode();
 
         // [THEN] The check returns false
@@ -283,7 +296,8 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a suspended license state
         // [WHEN] Checking whether the license is in paid suspended mode
-        InsertLicenseState("Tenant License State"::Suspended, CurrentDateTime() + InsertionDelay);
+        InsertLicenseState("Tenant License State"::Suspended.AsInteger(), CurrentDateTime() + InsertionDelay);
+
         IsPaidSuspendedMode := TenantLicenseState.IsPaidSuspendedMode();
 
         // [THEN] The check returns true
@@ -291,7 +305,7 @@ codeunit 138077 "Tenant License State Test"
 
         // [WHEN] Inserting a paid license state
         // [WHEN] Checking whether the license is in paid suspended mode
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime() + 2 * InsertionDelay);
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime() + 2 * InsertionDelay);
         IsPaidSuspendedMode := TenantLicenseState.IsPaidSuspendedMode();
 
         // [THEN] The check returns false
@@ -307,6 +321,7 @@ codeunit 138077 "Tenant License State Test"
         TenantLicenseState: Codeunit "Tenant License State";
         LicenseState: Enum "Tenant License State";
     begin
+        PermissionsMock.Set('Tenant License Read');
         // [GIVEN] The tenant license state table is unfiltered
         TenantLicenseStateRec.Reset();
 
@@ -321,7 +336,7 @@ codeunit 138077 "Tenant License State Test"
         end;
 
         // [WHEN] Inserting a paid license state
-        InsertLicenseState("Tenant License State"::Paid, CurrentDateTime());
+        InsertLicenseState("Tenant License State"::Paid.AsInteger(), CurrentDateTime());
 
         // [WHEN] Retrieving the current tenant license state
         LicenseState := TenantLicenseState.GetLicenseState();
@@ -335,9 +350,12 @@ codeunit 138077 "Tenant License State Test"
     var
         TenantLicenseState: Record "Tenant License State";
     begin
+        PermissionsMock.Stop();
         TenantLicenseState.Init();
         TenantLicenseState."Start Date" := StartDate;
         TenantLicenseState.State := State;
         TenantLicenseState.Insert();
+        PermissionsMock.Start();
+        PermissionsMock.Set('Tenant License Read');
     end;
 }

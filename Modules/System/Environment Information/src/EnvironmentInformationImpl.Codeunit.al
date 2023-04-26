@@ -7,6 +7,8 @@ codeunit 3702 "Environment Information Impl."
 {
     Access = Internal;
     SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
@@ -16,7 +18,6 @@ codeunit 3702 "Environment Information Impl."
         IsSaaSConfig: Boolean;
         IsSandboxConfig: Boolean;
         IsSandboxInitialized: Boolean;
-        MemberShipEntitlementValueTxt: Label 'Membership Entitlement. IsEmpty returned %1.', Locked = true;
         DefaultSandboxEnvironmentNameTxt: Label 'Sandbox', Locked = true;
         DefaultProductionEnvironmentNameTxt: Label 'Production', Locked = true;
 
@@ -63,19 +64,27 @@ codeunit 3702 "Environment Information Impl."
 
     procedure IsSaaS(): Boolean
     var
-        MembershipEntitlement: Record "Membership Entitlement";
+        ServerSettings: Codeunit "Server Setting";
     begin
         if TestabilitySoftwareAsAService then
             exit(true);
 
         if not IsSaasInitialized then begin
-            IsSaaSConfig := not MembershipEntitlement.IsEmpty();
-            SendTraceTag('00008TO', 'SaaS', VERBOSITY::Normal, StrSubstNo(MemberShipEntitlementValueTxt, not IsSaaSConfig),
-              DATACLASSIFICATION::SystemMetadata);
+            IsSaaSConfig := IsSandbox() or ServerSettings.GetEnableMembershipEntitlement();
             IsSaasInitialized := true;
         end;
 
         exit(IsSaaSConfig);
+    end;
+
+    procedure IsSaaSInfrastructure(): Boolean
+    var
+        UserAccountHelper: DotNet NavUserAccountHelper;
+    begin
+        if TestabilitySoftwareAsAService then
+            exit(true);
+
+        exit(IsSaaS() and UserAccountHelper.IsAzure());
     end;
 
     procedure IsOnPrem(): Boolean
@@ -93,6 +102,35 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetApplicationFamily());
     end;
 
+    procedure VersionInstalled(AppID: Guid): Integer
+    var
+        AppInfo: ModuleInfo;
+    begin
+        NavApp.GetModuleInfo(AppId, AppInfo);
+        exit(AppInfo.DataVersion.Major());
+    end;
+
+    procedure CanStartSession(): Boolean
+    var
+        NavTestExecution: DotNet NavTestExecution;
+    begin
+        if GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
+            exit(false);
+
+        // Sessions cannot be started in tests if test isolation is enabled
+        // 1) check that a test is indeed being executed (so the current user is not delegated admin / device / GDAP guest user)
+        if NavTestExecution.IsInTestMode() then
+            // 2) check for test isolation
+            exit(TaskScheduler.CanCreateTask());
+
+        exit(true);
+    end;
+
+    procedure EnableM365Collaboration()
+    begin
+        NavTenantSettingsHelper.EnableM365Collaboration();
+    end;
+
     local procedure GetAppId() AppId: Text
     begin
         OnBeforeGetApplicationIdentifier(AppId);
@@ -100,7 +138,7 @@ codeunit 3702 "Environment Information Impl."
             AppId := ApplicationIdentifier();
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     procedure OnBeforeGetApplicationIdentifier(var AppId: Text)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.

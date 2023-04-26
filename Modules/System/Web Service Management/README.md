@@ -39,10 +39,12 @@ Use this module to do the following:
 ### CreateWebService (Method) <a name="CreateWebService"></a> 
 
  Creates a web service for a given object. If the web service already exists, it modifies the web service accordingly.
+ This method should be used for On-Prem scenarios only. Calling this method in SaaS will throw a runtime error.
  
 
 #### Syntax
 ```
+[Scope('OnPrem')]
 procedure CreateWebService(ObjectType: Option; ObjectId: Integer; ObjectName: Text; Published: Boolean)
 ```
 #### Parameters
@@ -421,7 +423,7 @@ Tenant web service columns table record that selected columns are inserted to.
 The data item of the tenant web service column.
 
 ### RemoveUnselectedColumnsFromFilter (Method) <a name="RemoveUnselectedColumnsFromFilter"></a> 
- 
+
  Removes filters that are not in the selected columns for the given service.
  
 
@@ -447,7 +449,7 @@ The field name of the data item.
 
 Filter text for unselected columns.
 ### IsServiceNameValid (Method) <a name="IsServiceNameValid"></a> 
- 
+
  Checks if given service name is valid.
  
 

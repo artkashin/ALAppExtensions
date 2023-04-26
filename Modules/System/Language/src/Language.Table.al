@@ -1,5 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// ------------------------------------------------------------------------------------------------
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
@@ -10,6 +10,8 @@ table 8 Language
 {
     Access = Public;
     LookupPageID = Languages;
+    InherentEntitlements = RX;
+    InherentPermissions = RX;
 
     fields
     {
@@ -32,7 +34,7 @@ table 8 Language
         }
         field(7; "Windows Language Name"; Text[80])
         {
-            CalcFormula = Lookup ("Windows Language".Name WHERE("Language ID" = FIELD("Windows Language ID")));
+            CalcFormula = Lookup("Windows Language".Name WHERE("Language ID" = FIELD("Windows Language ID")));
             Editable = false;
             FieldClass = FlowField;
         }
@@ -52,18 +54,5 @@ table 8 Language
         {
         }
     }
-
-    /// <summary>
-    /// [OBSOLETE] Gets the language ID based on its code.
-    /// </summary>
-    /// <param name="LanguageCode">The code of the language</param>
-    /// <returns>The ID for the language code that was provided for this function. If no ID is found for the language code, then it returns 0.</returns>
-    [Obsolete('Please use function with the same name from this modules facade codeunit 43 - "Language".')]
-    procedure GetLanguageId(LanguageCode: Code[10]): Integer
-    var
-        LanguageImpl: Codeunit "Language Impl.";
-    begin
-        exit(LanguageImpl.GetLanguageId(LanguageCode));
-    end;
 }
 

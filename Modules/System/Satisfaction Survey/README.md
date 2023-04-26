@@ -13,7 +13,7 @@ Use this module to do the following:
 ### TryShowSurvey (Method) <a name="TryShowSurvey"></a> 
 
  Tries to show the satisfaction survey dialog to the current user.
- The survey is only shown if the user is chosen for the survey. 
+ The survey is only shown if the user is chosen for the survey.
  The method sends the request to the server and checks the response to check if the user is chosen for the survey.
  
 
@@ -58,12 +58,12 @@ True if the survey is shown, false otherwise.
 #### Syntax
 ```
 [Scope('OnPrem')]
-procedure TryGetCheckUrl(var CheckUrl: Text): Boolean
+procedure TryGetCheckUrl(var Url: Text): Boolean
 ```
 #### Parameters
-*CheckUrl ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
+*Url ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
 
-
+The URL of the request to the server for checking if the dialog has to be presented to the current user.
 
 #### Return Value
 *[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*

@@ -1,5 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 codeunit 130454 "Test Runner - Mgt"
 {
+    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+
+    var
+        ALTestRunnerResetEnvironment: Codeunit "ALTestRunner Reset Environment";
+        SkipLoggingResults: Boolean;
 
     trigger OnRun()
     begin
@@ -8,7 +18,9 @@ codeunit 130454 "Test Runner - Mgt"
     procedure RunTests(var NewTestMethodLine: Record "Test Method Line")
     var
         TestMethodLine: Record "Test Method Line";
+        ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
     begin
+        ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
         TestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
         TestMethodLine.ModifyAll(Result, TestMethodLine.Result::" ");
@@ -18,6 +30,7 @@ codeunit 130454 "Test Runner - Mgt"
 
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
 
+        ALCodeCoverageMgt.Initialize(TestMethodLine."Test Suite");
         OnRunTestSuite(TestMethodLine);
 
         if TestMethodLine.FindSet() then
@@ -31,13 +44,15 @@ codeunit 130454 "Test Runner - Mgt"
         OnAfterRunTestSuite(TestMethodLine);
     end;
 
-    procedure GetDefaultTestRunner(): Integer
+    /// This method is called when the caller needs to run a test codeunit but do not want to log results or the caller has 
+    /// an alternateway to log the results. Currently, this is used by the Performance Toolkit
+    procedure RunTestsWithoutLoggingResults(var TestMethodLine: Record "Test Method Line")
     begin
-        exit(GetCodeIsolationTestRunner());
+        SkipLoggingResults := true;
+        CODEUNIT.Run(TestMethodLine."Test Codeunit");
     end;
 
-    [Obsolete]
-    procedure GetDefautlTestRunner(): Integer
+    procedure GetDefaultTestRunner(): Integer
     begin
         exit(GetCodeIsolationTestRunner());
     end;
@@ -57,6 +72,9 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
+        if SkipLoggingResults then
+            exit(true);
+
         // Invoked by the platform before any codeunit is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then begin
             if GetTestCodeunit(CodeunitTestMethodLine, TestSuite, CodeunitID) then
@@ -70,6 +88,9 @@ codeunit 130454 "Test Runner - Mgt"
         if not TestMethodLineFunction.Run then
             exit(false);
 
+        // Start permission mock if installed
+        StartStopPermissionMock();
+
         SetStartTimeOnTestLine(TestMethodLineFunction);
         OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions);
 
@@ -81,6 +102,15 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLine: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
+        // Stop Permisson Mock if installed
+        if (FunctionName <> '') and (FunctionName <> 'OnRun') then
+            StartStopPermissionMock();
+
+        if SkipLoggingResults then begin
+            OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
+            exit;
+        end;
+
         // Invoked by platform after every test method is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then
             exit;
@@ -117,6 +147,7 @@ codeunit 130454 "Test Runner - Mgt"
             TestSuiteMgt.SetLastErrorOnLine(CodeunitTestMethodLine);
         end;
 
+        DummyBlankDateTime := 0DT;
         if (TestMethodLine."Start Time" < CodeunitTestMethodLine."Start Time") or
            (CodeunitTestMethodLine."Start Time" = DummyBlankDateTime)
         then
@@ -149,6 +180,19 @@ codeunit 130454 "Test Runner - Mgt"
 
         TestMethodLineFunction."Finish Time" := CurrentDateTime();
         TestMethodLineFunction.Modify();
+    end;
+
+    // TODO: Temporary fix refactor to system events.
+    local procedure StartStopPermissionMock()
+    var
+        AllObj: Record AllObj;
+        PermissionMockID: Integer;
+    begin
+        PermissionMockID := 131006; // codeunit 131006 "Permissions Mock"
+        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
+        AllObj.SetRange("Object ID", PermissionMockID);
+        if not AllObj.IsEmpty() then
+            Codeunit.Run(PermissionMockID);
     end;
 
     local procedure GetTestFunction(var TestMethodLineFunction: Record "Test Method Line"; FunctionName: Text[128]; TestSuite: Code[10]; TestCodeunit: Integer; LineNoTestFilter: Text): Boolean

@@ -16,6 +16,7 @@ page 9824 Plans
     ShowFilter = false;
     SourceTable = Plan;
     ContextSensitiveHelpPage = 'ui-how-users-permissions';
+    Permissions = tabledata Plan = r;
 
     layout
     {
@@ -23,19 +24,50 @@ page 9824 Plans
         {
             repeater(Group)
             {
-                field(Name; Name)
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the plan.';
                 }
             }
         }
-        area(factboxes) { }
+        area(factboxes)
+        {
+            part("Users in the Plan"; "User Plan Members FactBox")
+            {
+                Caption = 'Users in Plan';
+                ApplicationArea = All;
+                SubPageLink = "Plan ID" = field("Plan ID");
+            }
+        }
     }
 
-    actions
-    {
-        area(navigation) { }
-    }
+    /// <summary>
+    /// Set selected plan when the page is used in lookup mode.
+    /// </summary>
+    /// <param name="PlanId">The ID of the plan to select.</param>
+    procedure SetSelectedPlan(PlanId: Guid)
+    var
+        SelectedPlan: Record Plan;
+    begin
+        if SelectedPlan.Get(PlanId) then
+            CurrPage.SetRecord(SelectedPlan);
+    end;
+
+    /// <summary>
+    /// Gets the selected plan.
+    /// </summary>
+    /// <param name="PlanId">The ID of the selected plan.</param>
+    /// <param name="PlanName">The name of the selected plan.</param>
+    procedure GetSelectedPlan(var PlanId: Guid; var PlanName: Text[50])
+    var
+        SelectedPlan: Record Plan;
+    begin
+        CurrPage.GetRecord(SelectedPlan);
+
+        PlanId := SelectedPlan."Plan ID";
+        PlanName := SelectedPlan.Name
+    end;
+
 }
 

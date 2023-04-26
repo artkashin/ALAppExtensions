@@ -6,19 +6,22 @@
 codeunit 9844 "User Selection Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata User = r;
 
     var
         UserNameDoesNotExistErr: Label 'The user name %1 does not exist.', Comment = '%1 username';
 
     procedure HideExternalUsers(var User: Record User)
     var
-        EnvironmentInfo: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if not EnvironmentInfo.IsSaaS() then
-            exit;
-
         User.FilterGroup(2);
-        User.SetFilter("License Type", '<>%1', User."License Type"::"External User");
+        if not EnvironmentInformation.IsSaaS() then
+            User.SetFilter("License Type", '<>%1&<>%2', User."License Type"::Application, User."License Type"::"Windows Group")
+        else
+            User.SetFilter("License Type", '<>%1&<>%2&<>%3', User."License Type"::"External User", User."License Type"::Application, User."License Type"::"AAD Group");
         User.FilterGroup(0);
     end;
 
@@ -46,6 +49,16 @@ codeunit 9844 "User Selection Impl."
         User.SetRange("User Name", UserName);
         if User.IsEmpty() then
             Error(UserNameDoesNotExistErr, UserName);
+    end;
+
+    procedure FilterSystemUserAndAADGroupUsers(var User: Record User)
+    begin
+        User.SetFilter("License Type", '<>%1&<>%2', User."License Type"::"External User", User."License Type"::"AAD Group");
+    end;
+
+    procedure FilterSystemUserAndGroupUsers(var User: Record User)
+    begin
+        User.SetFilter("License Type", '<>%1&<>%2&<>%3', User."License Type"::"External User", User."License Type"::"AAD Group", User."License Type"::"Windows Group");
     end;
 }
 

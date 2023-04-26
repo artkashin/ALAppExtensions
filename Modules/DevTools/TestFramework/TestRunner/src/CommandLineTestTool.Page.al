@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 page 130455 "Command Line Test Tool"
 {
     AccessByPermission = TableData "Test Method Line" = RIMD;
@@ -11,6 +16,7 @@ page 130455 "Command Line Test Tool"
     PageType = Worksheet;
     SourceTable = "Test Method Line";
     UsageCategory = Administration;
+    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
 
     layout
     {
@@ -39,7 +45,21 @@ page 130455 "Command Line Test Tool"
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
                     TestSuiteMgt.SelectTestMethodsByRange(GlobalALTestSuite, TestCodeunitRangeFilter);
-                    IF FindFirst() THEN;
+                    IF Rec.FindFirst() THEN;
+                end;
+            }
+            field(TestProcedureRangeFilter; TestProcedureRangeFilter)
+            {
+                ApplicationArea = All;
+                Caption = 'Test Procedure Range';
+                ToolTip = 'Specifies the test procedure range';
+
+                trigger OnValidate()
+                begin
+                    if TestProcedureRangeFilter = '' then
+                        exit;
+
+                    TestSuiteMgt.SelectTestProceduresByName(GlobalALTestSuite.Name, TestProcedureRangeFilter);
                 end;
             }
             field(TestRunnerCodeunitId; TestRunnerCodeunitId)
@@ -67,7 +87,7 @@ page 130455 "Command Line Test Tool"
                 begin
                     TestSuiteMgt.DeleteAllMethods(GlobalALTestSuite);
                     TestSuiteMgt.SelectTestMethodsByExtension(GlobalALTestSuite, ExtensionId);
-                    IF FindFirst() THEN;
+                    IF Rec.FindFirst() THEN;
                 end;
             }
             field(DisableTestMethod; RemoveTestMethod)
@@ -86,11 +106,97 @@ page 130455 "Command Line Test Tool"
             {
                 ApplicationArea = All;
                 Caption = 'Test Result JSON';
-                MultiLine = true;
                 Editable = false;
                 ToolTip = 'Specifies the latest execution of the test as JSON';
             }
 
+            field(CCTrackingType; CCTrackingType)
+            {
+                ApplicationArea = All;
+                Caption = 'Code Coverage Tracking Type';
+                ToolTip = 'Specifies the Code Coverage tracking type';
+
+                trigger OnValidate()
+                begin
+                    TestSuiteMgt.SetCCTrackingType(GlobalALTestSuite, CCTrackingType);
+                end;
+            }
+
+            field(CCMap; CCMap)
+            {
+                ApplicationArea = All;
+                Caption = 'Code Coverage Map';
+                Tooltip = 'Code Coverage Map';
+                trigger OnValidate()
+                begin
+                    TestSuiteMgt.SetCCMap(GlobalALTestSuite, CCMap);
+                end;
+            }
+
+            field(CCTrackAllSessions; CCTrackAllSessions)
+            {
+                ApplicationArea = All;
+                Caption = 'Code Coverage Track All Sessions';
+                ToolTip = 'Specifies if the Code Coverage should track all sessions';
+
+                trigger OnValidate()
+                begin
+                    TestSuiteMgt.SetCCTrackAllSessions(GlobalALTestSuite, CCTrackAllSessions);
+                end;
+            }
+
+            field(CCExporterID; CodeCoverageExporterID)
+            {
+                ApplicationArea = All;
+                Caption = 'Code Coverage Exporter ID';
+                ToolTip = 'Specifies the Code Coverage exporter ID';
+
+                trigger OnValidate()
+                begin
+                    TestSuiteMgt.SetCodeCoverageExporterID(GlobalALTestSuite, CodeCoverageExporterID);
+                end;
+            }
+
+            field(CCResultsCSVText; CCResultsCSVText)
+            {
+                ApplicationArea = All;
+                Editable = false;
+                MultiLine = true;
+                Caption = 'Code Coverage Results CSV';
+                ToolTip = 'Specifies the Code Coverage results as CSV';
+            }
+
+            field(CCMapCSVText; CCMapCSVText)
+            {
+                Caption = 'Code Coverage Map CSV Text';
+                Tooltip = 'Code Coverage Map CSV Text';
+                ApplicationArea = All;
+                Editable = false;
+                MultiLine = true;
+            }
+
+            field(CCInfo; CCInfo)
+            {
+                ApplicationArea = All;
+                Editable = false;
+                MultiLine = true;
+                Caption = 'Code Coverage Information';
+                ToolTip = 'Specifies the Code Coverage information';
+            }
+
+            field(StabilityRun; StabilityRun)
+            {
+                ApplicationArea = All;
+                Caption = 'Stability run';
+                ToolTip = 'Specifies the latest execution of the test as JSON';
+
+                trigger OnValidate()
+                var
+                    TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                begin
+                    TestSuiteMgt.ChangeStabilityRun(GlobalALTestSuite, StabilityRun);
+                end;
+            }
             repeater(Control1)
             {
                 IndentationControls = Name;
@@ -102,22 +208,24 @@ page 130455 "Command Line Test Tool"
                     Editable = false;
                     ToolTip = 'Specifies a Non-Translatable value for console test runner.';
                 }
-                field(TestCodeunit; "Test Codeunit")
+                field(TestCodeunit; Rec."Test Codeunit")
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies the ID the test codeunit.';
                     Caption = 'Codeunit ID';
                     Editable = false;
                 }
-                field(Name; Name)
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
                     Editable = false;
                     ToolTip = 'Specifies the name of the test tool.';
                 }
-                field(Run; Run)
+                field(Run; Rec.Run)
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies wether the tests should run.';
                     Caption = 'Run';
 
                     trigger OnValidate()
@@ -146,15 +254,16 @@ page 130455 "Command Line Test Tool"
                     Caption = 'Stack Trace';
                     ToolTip = 'Specifies stack trace';
                 }
-                field(FinishTime; "Finish Time")
+                field(FinishTime; Rec."Finish Time")
                 {
                     ApplicationArea = All;
                     Caption = 'Finish Time';
                     ToolTip = 'Specifies the duration of the test run';
                 }
-                field(StartTime; "Start Time")
+                field(StartTime; Rec."Start Time")
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies the time the test started.';
                     Caption = 'Start Time';
                 }
             }
@@ -168,9 +277,11 @@ page 130455 "Command Line Test Tool"
             action(RunSelectedTests)
             {
                 ApplicationArea = All;
+                Tooltip = 'Runs the selected tests.';
                 Caption = 'Run Se&lected Tests';
                 Image = TestFile;
                 Promoted = true;
+                PromotedOnly = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
 
@@ -182,7 +293,7 @@ page 130455 "Command Line Test Tool"
                     TestMethodLine.Copy(Rec);
                     CurrPage.SetSelectionFilter(TestMethodLine);
                     TestSuiteMgt.RunSelectedTests(TestMethodLine);
-                    Find();
+                    Rec.Find();
                     CurrPage.Update(true);
                 end;
             }
@@ -190,9 +301,11 @@ page 130455 "Command Line Test Tool"
             action(RunNextTest)
             {
                 ApplicationArea = All;
+                Tooltip = 'Runs the next test.';
                 Caption = 'Run N&ext Test';
                 Image = TestReport;
                 Promoted = true;
+                PromotedOnly = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
 
@@ -208,7 +321,7 @@ page 130455 "Command Line Test Tool"
                     else
                         TestResultsJSONText := AllTestsExecutedTxt;
 
-                    if Find() then;
+                    if Rec.Find() then;
                     CurrPage.Update(true);
                 end;
             }
@@ -216,9 +329,11 @@ page 130455 "Command Line Test Tool"
             action(ClearTestResults)
             {
                 ApplicationArea = All;
+                Tooltip = 'Clear the test results.';
                 Caption = 'Clear Test R&esults';
                 Image = ClearLog;
                 Promoted = true;
+                PromotedOnly = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
 
@@ -227,23 +342,78 @@ page 130455 "Command Line Test Tool"
                     Rec.SetRange("Test Suite", CurrentSuiteName);
                     Rec.ModifyAll(Result, Rec.Result::" ", true);
                     Clear(TestResultsJSONText);
+                end;
+            }
+            action(GetCodeCoverage)
+            {
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                ToolTip = 'Update Code Coverage';
+                Image = Action;
+
+                trigger OnAction()
+                var
+                    ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
+                begin
+                    Clear(CCResultsCSVText);
+                    Clear(CCInfo);
+                    if not ALCodeCoverageMgt.ConsumeCoverageResult(CCResultsCSVText, CCInfo) then
+                        CCInfo := DoneLbl;
                     CurrPage.Update(true);
+                end;
+            }
+
+            action(GetCodeCoverageMap)
+            {
+                ApplicationArea = All;
+                Tooltip = 'Get Code Coverage Map';
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Image = Action;
+
+                trigger OnAction()
+                var
+                    ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
+                begin
+                    Clear(CCMapCSVText);
+                    ALCodeCoverageMgt.GetCoveCoverageMap(CCMapCSVText);
+                    CurrPage.Update(true);
+                end;
+            }
+            action(ClearCodeCoverage)
+            {
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                ToolTip = 'Clear Code Coverage';
+                Image = Action;
+
+                trigger OnAction()
+                var
+                    TestCodeCoverageResult: Record "Test Code Coverage Result";
+                    CodeCoverage: Record "Code Coverage";
+                begin
+                    TestCodeCoverageResult.DeleteAll();
+                    CodeCoverage.DeleteAll();
+                    System.CodeCoverageRefresh();
+                    CCInfo := '';
+                    CCResultsCSVText := '';
                 end;
             }
         }
     }
 
     trigger OnAfterGetCurrRecord()
-    var
-        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
         UpdateLine();
     end;
 
     trigger OnAfterGetRecord()
-    var
-        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
         UpdateLine();
@@ -256,8 +426,10 @@ page 130455 "Command Line Test Tool"
 
     var
         GlobalALTestSuite: Record "AL Test Suite";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
         CurrentSuiteName: Code[10];
         TestCodeunitRangeFilter: Text;
+        TestProcedureRangeFilter: Text;
         TestRunnerCodeunitId: Integer;
         Skipped: Integer;
         Success: Integer;
@@ -270,11 +442,18 @@ page 130455 "Command Line Test Tool"
         ExtensionId: Text;
         RemoveTestMethod: Text;
         TestResultsJSONText: Text;
+        CCResultsCSVText: Text;
+        CCMapCSVText: Text;
+        CCInfo: Text;
         AllTestsExecutedTxt: Label 'All tests executed.', Locked = true;
+        DoneLbl: Label 'Done.', Locked = true;
+        CCTrackingType: Integer;
+        CCMap: Integer;
+        CCTrackAllSessions: Boolean;
+        CodeCoverageExporterID: Integer;
+        StabilityRun: Boolean;
 
     local procedure ChangeTestSuite()
-    var
-        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         if not GlobalALTestSuite.Get(CurrentSuiteName) then begin
             TestSuiteMgt.CreateTestSuite(CurrentSuiteName);
@@ -285,16 +464,14 @@ page 130455 "Command Line Test Tool"
 
         CurrPage.SaveRecord();
 
-        FilterGroup(2);
-        SetRange("Test Suite", CurrentSuiteName);
-        FilterGroup(0);
+        Rec.FilterGroup(2);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
+        Rec.FilterGroup(0);
 
         CurrPage.Update(false);
     end;
 
     local procedure SetCurrentTestSuite()
-    var
-        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         if not GlobalALTestSuite.Get(CurrentSuiteName) then
             if GlobalALTestSuite.FindFirst() then
@@ -304,25 +481,29 @@ page 130455 "Command Line Test Tool"
                 Commit();
             end;
 
-        FilterGroup(2);
-        SetRange("Test Suite", CurrentSuiteName);
-        FilterGroup(0);
+        Rec.FilterGroup(2);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
+        Rec.FilterGroup(0);
 
-        if Find('-') then;
+        if Rec.Find('-') then;
 
         GlobalALTestSuite.Get(CurrentSuiteName);
         GlobalALTestSuite.CalcFields("Tests to Execute");
+        TestRunnerCodeunitId := GlobalALTestSuite."Test Runner Id";
+        StabilityRun := GlobalALTestSuite."Stability Run";
+        CCTrackAllSessions := GlobalALTestSuite."CC Track All Sessions";
+        CCTrackingType := GlobalALTestSuite."CC Tracking Type";
+        CodeCoverageExporterID := GlobalALTestSuite."CC Exporter ID";
+        CCMap := GlobalALTestSuite."CC Coverage Map";
     end;
 
     local procedure UpdateLine()
-    var
-        TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ConvertToInteger: Integer;
     begin
-        ConvertToInteger := Result;
+        ConvertToInteger := Rec.Result;
         ResultCode := Format(ConvertToInteger);
 
-        ConvertToInteger := "Line Type";
+        ConvertToInteger := Rec."Line Type";
         LineTypeCode := Format(ConvertToInteger);
 
         StackTrace := TestSuiteMgt.GetErrorCallStack(Rec);
@@ -355,7 +536,7 @@ page 130455 "Command Line Test Tool"
             exit;
 
         TestMethodLine.SetRange("Test Suite", GlobalALTestSuite.Name);
-        TestMethodLine.SetRange("Line Type", "Line Type"::"Function");
+        TestMethodLine.SetRange("Line Type", Rec."Line Type"::"Function");
         TestMethodLine.SetRange("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
         TestMethodLine.SetFilter(Name, TestMethodName);
         TestMethodLine.ModifyAll(Run, false);

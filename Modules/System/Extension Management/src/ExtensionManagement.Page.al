@@ -8,8 +8,8 @@
 /// </summary>
 page 2500 "Extension Management"
 {
-    Extensible = false;
-    AdditionalSearchTerms = 'app,add-in,customize,plug-in';
+    Caption = 'Extension Management';
+    AdditionalSearchTerms = 'app,add-in,customize,plug-in,appsource';
     ApplicationArea = All;
     DeleteAllowed = false;
     Editable = false;
@@ -18,13 +18,15 @@ page 2500 "Extension Management"
     PageType = List;
     PromotedActionCategories = 'New,Process,Report,Details,Manage';
     RefreshOnActivate = true;
-    SourceTable = "NAV App";
+    SourceTable = "Published Application";
     SourceTableView = SORTING(Name)
                       ORDER(Ascending)
                       WHERE(Name = FILTER(<> '_Exclude_*'),
-                            "Package Type" = FILTER(= 0 | 2));
+                            "Package Type" = FILTER(= Extension | Designer),
+                            "Tenant Visible" = CONST(true));
     UsageCategory = Administration;
     ContextSensitiveHelpPage = 'ui-extensions';
+    Permissions = tabledata "Published Application" = r;
 
     layout
     {
@@ -39,19 +41,37 @@ page 2500 "Extension Management"
                     Caption = 'Logo';
                     ToolTip = 'Specifies the logo of the extension, such as the logo of the service provider.';
                 }
-                field(AdditionalInfo; InfoText)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Description';
-                    Style = Favorable;
-                    StyleExpr = InfoStyle;
-                    ToolTip = 'Specifies, in case of on-premises, either the person or company who provided the extension and, in case of SaaS, whether the extension is installed or not.';
-                }
                 field(Name; Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the extension.';
                 }
+                field(Publisher; Publisher)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the publisher of the extension.';
+                }
+                field(Version; VersionDisplay)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Version';
+                    ToolTip = 'Specifies the version of the extension.';
+                }
+                field("Is Installed"; IsInstalled)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Is Installed';
+                    Style = Favorable;
+                    StyleExpr = InfoStyle;
+                    ToolTip = 'Specifies whether the extension is installed.';
+                }
+                field("Published As"; "Published As")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Published As';
+                    ToolTip = 'Specifies whether the extension is published as a per-tenant, development, or a global extension.';
+                }
+
                 label(Control18)
                 {
                     ApplicationArea = All;
@@ -64,12 +84,6 @@ page 2500 "Extension Management"
                     ToolTip = 'Specifies a spacer for ''Brick'' view mode.';
                     Visible = NOT IsOnPremDisplay;
                 }
-                field(Version; VersionDisplay)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Version';
-                    ToolTip = 'Specifies the version of the extension.';
-                }
             }
         }
     }
@@ -80,8 +94,22 @@ page 2500 "Extension Management"
         {
             group(ActionGroup13)
             {
-                Enabled = false;
-                Visible = false;
+                Caption = 'Process';
+                action(View)
+                {
+                    ApplicationArea = All;
+                    Caption = 'View';
+                    Enabled = ActionsEnabled;
+                    Image = View;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Category5;
+                    ShortCutKey = 'Return';
+                    ToolTip = 'View extension details.';
+                    RunObject = Page "Extension Settings";
+                    RunPageLink = "App ID" = FIELD(ID);
+                    Scope = Repeater;
+                }
                 action(Install)
                 {
                     ApplicationArea = All;
@@ -89,10 +117,10 @@ page 2500 "Extension Management"
                     Enabled = ActionsEnabled AND (NOT IsInstalled);
                     Image = NewRow;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Install the extension for the current tenant.';
-                    Visible = IsInstallAllowed;
 
                     trigger OnAction()
                     begin
@@ -107,6 +135,7 @@ page 2500 "Extension Management"
                     Enabled = ActionsEnabled AND IsInstalled;
                     Image = RemoveLine;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Remove the extension from the current tenant.';
@@ -121,13 +150,13 @@ page 2500 "Extension Management"
                 {
                     ApplicationArea = All;
                     Caption = 'Unpublish';
-                    Enabled = ActionsEnabled;
+                    Enabled = ActionsEnabled AND IsTenantExtension AND (not IsInstalled);
                     Image = RemoveLine;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Unpublish the extension from the tenant.';
-                    Visible = IsTenantExtension;
 
                     trigger OnAction()
                     begin
@@ -139,25 +168,57 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.UnpublishUninstalledPerTenantExtension("Package ID");
                     end;
                 }
+#if not CLEAN21
                 action(Configure)
                 {
                     ApplicationArea = All;
                     Caption = 'Configure';
                     Image = Setup;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     RunObject = Page "Extension Settings";
                     RunPageLink = "App ID" = FIELD(ID);
                     Scope = Repeater;
                     ToolTip = 'Configure the extension.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '21.0';
+                    ObsoleteReason = 'Removed as it clashes with Set up this app action.';
+                }
+#endif
+                action(SetupApp)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Set up';
+                    Image = SetupList;
+                    Enabled = ActionsEnabled AND IsInstalled;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Category5;
+                    Scope = Repeater;
+                    ToolTip = 'Runs the setup page that has been marked as primary for the selected app.';
+
+                    trigger OnAction()
+                    var
+                        PublishedApplication: Record "Published Application";
+                    begin
+                        CurrPage.SetSelectionFilter(PublishedApplication);
+
+                        if PublishedApplication.Count > 1 then
+                            Error(MultiSelectNotSupportedErr);
+
+                        ExtensionInstallationImpl.RunExtensionSetup(Rec.ID);
+                    end;
                 }
                 action("Download Source")
                 {
                     ApplicationArea = All;
                     Caption = 'Download Source';
-                    Enabled = IsTenantExtension AND "Show My Code";
+                    Enabled = IsTenantExtension;
                     Image = ExportFile;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Download the source code for the extension.';
@@ -175,6 +236,7 @@ page 2500 "Extension Management"
                     Enabled = ActionsEnabled;
                     Image = Info;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'View information from the extension provider.';
@@ -188,7 +250,7 @@ page 2500 "Extension Management"
                 {
                     ApplicationArea = All;
                     Caption = 'Refresh';
-                    Image = RefreshLines;
+                    Image = Refresh;
                     Promoted = true;
                     PromotedCategory = Category5;
                     ToolTip = 'Refresh the list of extensions.';
@@ -206,18 +268,12 @@ page 2500 "Extension Management"
                     Enabled = IsSaaS;
                     Image = NewItem;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     PromotedIsBig = true;
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
                     Visible = NOT IsOnPremDisplay;
-
-                    trigger OnAction()
-                    begin
-                        if AppSource.IsAvailable() then begin
-                            AppSource := AppSource.Create();
-                            AppSource.ShowAppSource();
-                        end;
-                    end;
+                    RunObject = page "Extension Marketplace";
                 }
                 action("Upload Extension")
                 {
@@ -225,6 +281,7 @@ page 2500 "Extension Management"
                     Caption = 'Upload Extension';
                     Image = Import;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     PromotedIsBig = true;
                     RunObject = Page "Upload And Deploy Extension";
@@ -234,32 +291,15 @@ page 2500 "Extension Management"
                 action("Deployment Status")
                 {
                     ApplicationArea = All;
-                    Caption = 'Deployment Status';
-                    Image = View;
+                    Caption = 'Installation Status';
+                    Image = Status;
                     Promoted = true;
+                    PromotedOnly = true;
                     PromotedCategory = Category5;
                     PromotedIsBig = true;
                     RunObject = Page "Extension Deployment Status";
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
-                }
-                action(View)
-                {
-                    ApplicationArea = All;
-                    Caption = 'View';
-                    Enabled = ActionsEnabled;
-                    Image = View;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    ShortCutKey = 'Return';
-                    ToolTip = 'View extension details.';
-                    Visible = NOT IsSaaS;
-
-                    trigger OnAction()
-                    begin
-                        if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
-                    end;
                 }
             }
         }
@@ -273,7 +313,7 @@ page 2500 "Extension Management"
         DetermineExtensionConfigurations();
 
         VersionDisplay := GetVersionDisplayText();
-        SetAdditionalInfoProperties();
+        SetInfoStyleForIsInstalled();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -297,25 +337,18 @@ page 2500 "Extension Management"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
-        [RunOnClient]
-        AppSource: DotNet AppSource;
         VersionDisplay: Text;
-        InstalledStatus: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
         VersionFormatTxt: Label 'v. %1', Comment = 'v=version abbr, %1=Version string';
         SaaSCaptionTxt: Label 'Installed Extensions', Comment = 'The caption to display when on SaaS';
-        IsSaaSInstallAllowed: Boolean;
         IsTenantExtension: Boolean;
         CannotUnpublishIfInstalledMsg: Label 'The extension %1 cannot be unpublished because it is installed.', Comment = '%1 = name of extension';
+        MultiSelectNotSupportedErr: Label 'Multi-select is not supported on this action';
         IsMarketplaceEnabled: Boolean;
         IsOnPremDisplay: Boolean;
-        VersionPerTenantTxt: Label 'v. %1 - %2', Comment = '%1=formatted version string, %2=not installed constant', Locked = true;
         IsInstalled: Boolean;
-        IsSandbox: Boolean;
         IsInstallAllowed: Boolean;
-        InstallAllowed: Boolean;
-        InfoText: Text;
         InfoStyle: Boolean;
         [InDataSet]
         HelpActionVisible: Boolean;
@@ -325,62 +358,42 @@ page 2500 "Extension Management"
         // Set installed filter if we are not displaying like on-prem
         FilterGroup(2);
         if not IsInstallAllowed then
-            SetRange("PerTenant Or Installed", true)
-        else
-            SetRange("Tenant Visible", true);
+            SetRange("PerTenant Or Installed", true);
         FilterGroup(0);
     end;
 
     local procedure DetermineEnvironmentConfigurations()
     var
-        EnvironmentInfo: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
         ExtensionMarketplace: Codeunit "Extension Marketplace";
         ServerSetting: Codeunit "Server Setting";
+        IsSaaSInstallAllowed: Boolean;
     begin
-        IsSaaS := EnvironmentInfo.IsSaaS();
-        IsSandbox := EnvironmentInfo.IsSandbox();
-        InstallAllowed := ServerSetting.GetEnableSaaSExtensionInstallSetting();
+        IsSaaS := EnvironmentInformation.IsSaaS();
+        IsSaaSInstallAllowed := ServerSetting.GetEnableSaaSExtensionInstallSetting();
 
         IsMarketplaceEnabled := ExtensionMarketplace.IsMarketplaceEnabled();
 
         // Composed configurations for the simplicity of representation
-        IsSaaSInstallAllowed := IsSandbox or InstallAllowed;
-        IsOnPremDisplay := (not IsMarketplaceEnabled or not IsSaaS);
-        IsInstallAllowed := (IsOnPremDisplay or IsSaaSInstallAllowed);
+        IsOnPremDisplay := not IsMarketplaceEnabled or not IsSaaS;
+        IsInstallAllowed := IsOnPremDisplay or IsSaaSInstallAllowed;
     end;
 
     local procedure DetermineExtensionConfigurations()
     begin
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId("Package ID");
-        InstalledStatus := ExtensionInstallationImpl.GetExtensionInstalledDisplayString("Package ID");
-        // Currently using the "Tenant ID" field to identify development extensions
-        if Scope = 1 then
-            IsTenantExtension := true
-        else
-            IsTenantExtension := false;
+        IsTenantExtension := "Published As" <> "Published As"::Global;
     end;
 
     local procedure GetVersionDisplayText(): Text
     begin
-        // Getting the version display text and adding a '- NotInstalled' if in SaaS for PerTenant extensions
-        if IsInstalled or not IsSaaS or not IsTenantExtension then
-            exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
-
-        exit(StrSubstNo(VersionPerTenantTxt,
-            ExtensionInstallationImpl.GetVersionDisplayString(Rec), InstalledStatus));
+        exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
     end;
 
-    local procedure SetAdditionalInfoProperties()
+    local procedure SetInfoStyleForIsInstalled()
     begin
-        // Set Name styling if on prem display (shows green)
-        if IsOnPremDisplay or IsSaaSInstallAllowed then begin
-            InfoText := InstalledStatus;
-            InfoStyle := IsInstalled
-        end else begin
-            InfoStyle := false;
-            InfoText := Publisher;
-        end;
+        InfoStyle := IsInstalled and IsInstallAllowed;
     end;
 }
 

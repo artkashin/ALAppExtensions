@@ -10,6 +10,8 @@ codeunit 457 "Environment Information"
 {
     Access = Public;
     SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         EnvironmentInformationImpl: Codeunit "Environment Information Impl.";
@@ -22,7 +24,6 @@ codeunit 457 "Environment Information"
     begin
         exit(EnvironmentInformationImpl.IsProduction());
     end;
-
 
     /// <summary>
     /// Gets the name of the environment.
@@ -70,10 +71,49 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Checks if the deployment infrastucture is SaaS (Software as a Service). 
+    /// Note: This function will return false in a Docker container.
+    /// </summary>
+    /// <returns>True if the deployment infrastructure type is a SaaS, false otherwise.</returns>
+    procedure IsSaaSInfrastructure(): Boolean
+    begin
+        exit(EnvironmentInformationImpl.IsSaaSInfrastructure());
+    end;
+
+    /// <summary>
     /// Gets the application family.
     /// </summary>
+    /// <returns>The application family.</returns>
     procedure GetApplicationFamily(): Text
     begin
         exit(EnvironmentInformationImpl.GetApplicationFamily());
     end;
+
+    /// <summary>
+    /// Gets the version which a given app was installed in.
+    /// </summary>
+    /// <param name="AppID">The module ID of the app.</param>
+    /// <returns>The major version number when the app was installed.</returns>
+    procedure VersionInstalled(AppID: Guid): Integer
+    begin
+        exit(EnvironmentInformationImpl.VersionInstalled(AppID));
+    end;
+
+    /// <summary>
+    /// Checks if a new session can be started via the Session.StartSession call.
+    /// </summary>
+    /// <returns>True, if a new session can be created, false otherwise.</returns>
+    procedure CanStartSession(): Boolean
+    begin
+        exit(EnvironmentInformationImpl.CanStartSession());
+    end;
+
+    /// <summary>
+    /// Sets M365 Collaboration to enabled in the tenant admin center
+    /// </summary>
+    procedure EnableM365Collaboration()
+    begin
+        EnvironmentInformationImpl.EnableM365Collaboration();
+    end;
+
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,6 +6,8 @@
 codeunit 55 "Caption Class Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         CaptionClass: Codeunit "Caption Class";
@@ -41,7 +43,7 @@ codeunit 55 "Caption Class Impl."
             Caption := CaptionClassExpr;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, 2000000004, 'CaptionClassTranslate', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", CaptionClassTranslate, '', false, false)]
     local procedure DoResolveCaptionClass(Language: Integer; CaptionExpr: Text[1024]; var Translation: Text[1024])
     begin
         Translation := CopyStr(ResolveCaptionClass(Language, CaptionExpr), 1, MaxStrLen(Translation));

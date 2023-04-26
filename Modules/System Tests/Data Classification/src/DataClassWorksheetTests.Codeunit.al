@@ -6,11 +6,14 @@
 codeunit 135159 "Data Class. Worksheet Tests"
 {
     Subtype = Test;
-    TestPermissions = Disabled;
+    Permissions = tabledata "Data Sensitivity" = d,
+                  tabledata "Fields Sync Status" = r;
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        PermissionsMock: Codeunit "Permissions Mock";
         NotificationCount: Integer;
+        FieldSyncStatusGetErr: Label 'The ID %1 cannot be found in the Field Sync Status table', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -22,6 +25,10 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
         // [GIVEN] The Data Sensitivity table contains a single entry
+
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         DataSensitivity.DeleteAll();
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Privacy Entities",
            DataPrivacyEntities.FieldNo("Key Field No."), DataSensitivity."Data Sensitivity"::Unclassified);
@@ -54,6 +61,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
     var
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The Data Classification Worksheet page is open for editing
         DataClassificationWorksheet.OpenEdit();
 
@@ -75,6 +85,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
         FieldCount: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The number of enabled, sensitive, normal fields
         Field.SetRange(Class, Field.Class::Normal);
         DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
@@ -116,6 +129,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         SensitiveFieldNo: Integer;
         FieldCount: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The Data Sensitivity table contains two entries - one that is classified and one that isn't
         DataSensitivity.DeleteAll();
         TableNo := 50000;
@@ -170,6 +186,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The Data Sensitivity table contains an entry for a field of type Text
         DataSensitivity.DeleteAll();
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Privacy Entities",
@@ -204,6 +223,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The Data Sensitivity table contains an entry for a field of type Code
         DataSensitivity.DeleteAll();
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Fields Sync Status",
@@ -239,6 +261,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] The Data Sensitivity table contains an entry for a field of type Code
         DataSensitivity.DeleteAll();
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Privacy Entities",
@@ -265,6 +290,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         SensitiveFieldNo: Integer;
         UnclassifiedFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         TableNo := Database::"Data Privacy Entities";
         SensitiveFieldNo := DataPrivacyEntities.FieldNo("Similar Fields Label");
         UnclassifiedFieldNo := DataPrivacyEntities.FieldNo("Default Data Sensitivity");
@@ -326,6 +354,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         SensitiveFieldNo: Integer;
         UnclassifiedFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         TableNo := Database::"Data Privacy Entities";
         SensitiveFieldNo := DataPrivacyEntities.FieldNo("Similar Fields Label");
         UnclassifiedFieldNo := DataPrivacyEntities.FieldNo("Default Data Sensitivity");
@@ -387,6 +418,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         PersonalFieldNo: Integer;
         CompanyConfidentialFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         TableNo := Database::"Data Privacy Entities";
         PersonalFieldNo := DataPrivacyEntities.FieldNo("Similar Fields Label");
         CompanyConfidentialFieldNo := DataPrivacyEntities.FieldNo("Default Data Sensitivity");
@@ -449,6 +483,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         NormalFieldNo: Integer;
         CompanyConfidentialFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         TableNo := Database::"Data Privacy Entities";
         NormalFieldNo := DataPrivacyEntities.FieldNo("Similar Fields Label");
         CompanyConfidentialFieldNo := DataPrivacyEntities.FieldNo("Default Data Sensitivity");
@@ -511,6 +548,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         PersonalFieldNo: Integer;
         CompanyConfidentialFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         TableNo := Database::"Data Privacy Entities";
         PersonalFieldNo := DataPrivacyEntities.FieldNo("Similar Fields Label");
         CompanyConfidentialFieldNo := DataPrivacyEntities.FieldNo("Default Data Sensitivity");
@@ -578,6 +618,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         PersonalFieldNo: Integer;
         CompanyConfidentialFieldNo: Integer;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [GIVEN] 6 entries in the Data Sensitive table - one for each Data Sensitivity option 
         // and an additional one for Normal sensitivity
         TableNo := Database::"Data Privacy Entities";
@@ -631,6 +674,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
     var
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [WHEN] The page opens
         // [THEN] Display a notification
         DataClassificationWorksheet.OpenEdit();
@@ -649,6 +695,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [WHEN] A user changes a data sensitivity classification
         // [THEN] Change the value on the page
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Field Content Buffer", 1, DataSensitivity."Data Sensitivity"::Unclassified);
@@ -679,6 +728,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [WHEN] A user changes a data sensitivity classification
         // [THEN] The last modified by value is also changed in the page
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Field Content Buffer", 1, DataSensitivity."Data Sensitivity"::Unclassified);
@@ -701,6 +753,9 @@ codeunit 135159 "Data Class. Worksheet Tests"
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
         BaseDate: DateTime;
     begin
+        // Verify the module highest permission level is sufficient ignore non Tables
+        PermissionsMock.Set('Data Class Edit');
+
         // [WHEN] A user changes a data sensitivity classification
         // [THEN] The last modified value (date) also changes
         DataClassificationMgt.InsertDataSensitivityForField(Database::"Field Content Buffer", 1, DataSensitivity."Data Sensitivity"::Unclassified);
@@ -753,7 +808,7 @@ codeunit 135159 "Data Class. Worksheet Tests"
 
         repeat
             LibraryAssert.IsTrue(FieldSyncStatus.Get(FieldContentBuffer.Value.Value()),
-                StrSubstNo('The ID %1 cannot be found in the Field Sync Status table', FieldContentBuffer.Value.Value()));
+                StrSubstNo(FieldSyncStatusGetErr, FieldContentBuffer.Value.Value()));
         until not FieldContentBuffer.Next();
     end;
 
@@ -776,11 +831,11 @@ codeunit 135159 "Data Class. Worksheet Tests"
 
     local procedure InsertFieldSyncStatus(ID: Code[2])
     var
-        FieldSyncStatus: Record "Fields Sync Status";
+        FieldsSyncStatus: Record "Fields Sync Status";
     begin
-        FieldSyncStatus.Init();
-        FieldSyncStatus.ID := ID;
-        FieldSyncStatus.Insert();
+        FieldsSyncStatus.Init();
+        FieldsSyncStatus.ID := ID;
+        FieldsSyncStatus.Insert();
     end;
 
     local procedure VerifyThatFieldsAreDisplayedOnPage(var DataSensitivity: Record "Data Sensitivity"; var DataClassificationWorksheet: TestPage "Data Classification Worksheet"): Boolean

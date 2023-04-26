@@ -1,4 +1,4 @@
-The modules consists of a page to enter a date-time value.
+The modules consists of a page to enter date or date-time values.
 
 Usage example:
 
@@ -11,7 +11,21 @@ begin
     DateTimeDialog.SetDateTime(InitialValue);
 
     if DateTimeDialog.RunModal() = Action::OK then
-        NewValue := DateTimeDialog.GetDateTime;
+        NewValue := DateTimeDialog.GetDateTime();
+
+    exit(NewValue);
+end;
+
+procedure LookupDate(InitialValue: Date): Date
+var
+    DateDialog: Page "Date-Time Dialog";
+    NewValue: Date;
+begin
+    DateDialog.UseDateOnly()
+    DateDialog.SetDate(InitialValue);
+
+    if DateDialog.RunModal() = Action::OK then
+        NewValue := DateDialog.GetDate();
 
     exit(NewValue);
 end;
@@ -34,7 +48,7 @@ end;
 procedure SetDateTime(DateTime: DateTime)
 ```
 #### Parameters
-*DateTime ([DateTime](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/datetime/datetime-data-type))* 
+*DateTime ([DateTime](https://go.microsoft.com/fwlink/?linkid=2210239))* 
 
 The value to set.
 
@@ -48,6 +62,6 @@ The value to set.
 procedure GetDateTime(): DateTime
 ```
 #### Return Value
-*[DateTime](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/datetime/datetime-data-type)*
+*[DateTime](https://go.microsoft.com/fwlink/?linkid=2210239)*
 
 The value that is set on the page.

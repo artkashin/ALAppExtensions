@@ -6,7 +6,13 @@
 codeunit 2503 "Extension Operation Impl"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     SingleInstance = false;
+    Permissions = tabledata Media = r,
+                  tabledata "NAV App Setting" = rm,
+                  tabledata "NAV App Tenant Operation" = r,
+                  tabledata "Published Application" = r;
 
     var
         DotNetALNavAppOperationInvoker: DotNet ALNavAppOperationInvoker;
@@ -14,13 +20,17 @@ codeunit 2503 "Extension Operation Impl"
         OperationInvokerHasBeenCreated: Boolean;
         InstallerHasBeenCreated: Boolean;
         ExtensionFileNameTxt: Label '%1_%2_%3.zip', Comment = '%1=Name, %2=Publisher, %3=Version', Locked = true;
-        OperationProgressMsg: Label 'We are installing the extension. You can view the progress on the Status page.';
-        CurrentOperationProgressMsg: Label 'Extension deployment is in progress. Please check the Deployment Status page for updates.';
-        ScheduledOperationMajorProgressMsg: Label 'Extension deployment has been scheduled for the next major version. Please check the Deployment Status page for updates.';
-        ScheduledOperationMinorProgressMsg: Label 'Extension deployment has been scheduled for the next minor version. Please check the Deployment Status page for updates.';
+        CurrentOperationProgressMsg: Label 'Extension installation is in progress. Please check the Extension Installation Status page for updates.';
+        ScheduledOperationMajorProgressMsg: Label 'Extension installation has been scheduled for the next major version. Please check the Extension Installation Status page for updates.';
+        ScheduledOperationMinorProgressMsg: Label 'Extension installation has been scheduled for the next minor version. Please check the Extension Installation Status page for updates.';
+        DownloadExtensionSourceIsNotAllowedErr: Label 'The effective policies for this package do not allow you to download the source code. Contact the extension provider for more information.';
         DialogTitleTxt: Label 'Export';
         OutExtTxt: Label 'Text Files (*.txt)|*.txt|*.*';
         NotSufficientPermissionErr: Label 'You do not have sufficient permissions to manage extensions. Please contact your administrator.';
+        InstallationFailedOpenDetailsQst: Label 'Sorry, we couldn''t install the app. Do you want to see the details?';
+        InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
+        InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
+        PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
 
     local procedure AssertIsInitialized()
     begin
@@ -31,48 +41,80 @@ codeunit 2503 "Extension Operation Impl"
     end;
 
     procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean)
+    var
+        NAVAppTenantOperation: Record "NAV App Tenant Operation";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        ExtnInstallationProgress: Page "Extn. Installation Progress";
+        ExtnDeploymentStatusDetail: Page "Extn Deployment Status Detail";
+        OperationId: Guid;
     begin
         CheckPermissions();
         InitializeOperationInvoker();
-        DotNetALNavAppOperationInvoker.DeployTarget(AppId, Format(lcid));
-        if IsUIEnabled then
-            Message(OperationProgressMsg);
+
+        OperationId := DotNetALNavAppOperationInvoker.DeployTarget(AppId, Format(lcid));
+
+        if IsUIEnabled then begin
+            ExtnInstallationProgress.SetOperationIdToMonitor(OperationId);
+            ExtnInstallationProgress.Caption(StrSubstNo(PageCaptionTok, ExtnInstallationProgress.Caption, GetAppName(AppId, OperationId)));
+            ExtnInstallationProgress.RunModal();
+
+            ExtensionOperationImpl.RefreshStatus(OperationId);
+            NAVAppTenantOperation.Get(OperationId);
+
+            if NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Failed then begin
+                if Confirm(InstallationFailedOpenDetailsQst) then begin
+                    Session.LogMessage('0000I2M', InstallationFailedOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+                    ExtnDeploymentStatusDetail.SetOperationRecord(NAVAppTenantOperation);
+                    ExtnDeploymentStatusDetail.RunModal();
+                end else
+                    Session.LogMessage('0000I2N', InstallationFailedDoNotOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+                exit;
+            end;
+        end;
     end;
 
-
-    procedure UploadExtension(PackageStream: InStream; lcid: Integer)
+    procedure UploadExtension(PackageInStream: InStream; lcid: Integer)
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
     begin
         CheckPermissions();
         DotNetALPackageDeploymentSchedule := DotNetALPackageDeploymentSchedule.Immediate;
         InitializeOperationInvoker();
-        DotNetALNavAppOperationInvoker.UploadPackage(PackageStream, DotNetALPackageDeploymentSchedule, Format(lcid));
+        DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid));
     end;
 
-    procedure DeployAndUploadExtension(PackageStream: InStream; lcid: Integer; DeployTo: Option "Current version","Next minor version","Next major version")
+    procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
+        DotNetALNavAppSyncMode: DotNet ALNavAppSyncMode;
     begin
         CheckPermissions();
         InitializeOperationInvoker();
+
+        case SyncMode of
+            SyncMode::Add:
+                DotNetALNavAppSyncMode := DotNetALNavAppSyncMode.Add;
+            SyncMode::"Force Sync":
+                DotNetALNavAppSyncMode := DotNetALNavAppSyncMode.ForceSync;
+        end;
+
         case DeployTo of
             DeployTo::"Current version":
                 begin
                     DotNetALPackageDeploymentSchedule := DotNetALPackageDeploymentSchedule.Immediate;
-                    DotNetALNavAppOperationInvoker.UploadPackage(PackageStream, DotNetALPackageDeploymentSchedule, Format(lcid));
+                    DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid), DotNetALNavAppSyncMode);
                     Message(CurrentOperationProgressMsg);
                 end;
             DeployTo::"Next minor version":
                 begin
                     DotNetALPackageDeploymentSchedule := DotNetALPackageDeploymentSchedule.StageForNextMinorUpdate;
-                    DotNetALNavAppOperationInvoker.UploadPackage(PackageStream, DotNetALPackageDeploymentSchedule, Format(lcid));
+                    DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid), DotNetALNavAppSyncMode);
                     Message(ScheduledOperationMinorProgressMsg);
                 end;
             DeployTo::"Next major version":
                 begin
                     DotNetALPackageDeploymentSchedule := DotNetALPackageDeploymentSchedule.StageForNextUpdate;
-                    DotNetALNavAppOperationInvoker.UploadPackage(PackageStream, DotNetALPackageDeploymentSchedule, Format(lcid));
+                    DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid), DotNetALNavAppSyncMode);
                     Message(ScheduledOperationMajorProgressMsg);
                 end;
         end;
@@ -80,13 +122,14 @@ codeunit 2503 "Extension Operation Impl"
 
     procedure UnpublishExtension(PackageID: Guid): Boolean
     var
-        NavApp: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
     begin
-        if not (NavApp.Get(PackageID)) then
-            exit(false);
+        PublishedApplication.SetRange("Package ID", PackageID);
+        PublishedApplication.SetRange("Tenant Visible", true);
+        PublishedApplication.SetFilter("Published As", '<>%1', PublishedApplication."Published As"::Global);
 
-        if (NavApp.Scope <> 1) then
+        if PublishedApplication.IsEmpty() then
             exit(false);
 
         if ExtensionInstallationImpl.IsInstalledByPackageId(PackageID) then
@@ -103,40 +146,50 @@ codeunit 2503 "Extension Operation Impl"
         DotNetNavAppALInstaller.ALUnpublishNavTenantApp(PackageID);
     end;
 
-    procedure DownloadExtensionSource(PackageId: Guid): Boolean
+    procedure GetExtensionSource(PackageId: Guid; var ExtensionSourceTempBlob: Codeunit "Temp Blob"; var CleanFileName: Text): Boolean
     var
-        NAVApp: Record "NAV App";
-        TempBlob: Codeunit "Temp Blob";
+        PublishedApplication: Record "Published Application";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         DotNetNavDesignerALFunctions: DotNet NavDesignerALFunctions;
         NvOutStream: OutStream;
-        NvInStream: InStream;
         FileName: Text;
         VersionString: Text;
-        CleanFileName: Text;
     begin
         CheckPermissions();
-        if not NAVApp.Get(PackageId) then
+
+        PublishedApplication.SetRange("Package ID", PackageID);
+        PublishedApplication.SetRange("Tenant Visible", true);
+        PublishedApplication.SetFilter("Published As", '<>%1', PublishedApplication."Published As"::Global);
+
+        if not PublishedApplication.FindFirst() then
             exit(false);
 
-        if (NavApp.Scope <> 1) then
-            exit(false);
+        if not DotNetNavDesignerALFunctions.IsDownloadSourceCodeAllowedForCurrentUser(PublishedApplication."Runtime Package ID") then
+            Error(DownloadExtensionSourceIsNotAllowedErr);
 
-        if (NAVApp."Show My Code" = false) then
-            exit(false);
+        ExtensionSourceTempBlob.CreateOutStream(NvOutStream);
+        VersionString := ExtensionInstallationImpl.GetVersionDisplayString(PublishedApplication);
 
-        TempBlob.CreateOutStream(NvOutStream);
-        VersionString :=
-          ExtensionInstallationImpl.GetVersionDisplayString(NAVApp);
+        DotNetNavDesignerALFunctions.GenerateDesignerPackageZipStreamByVersion(NvOutStream, PublishedApplication.ID, VersionString);
 
-        DotNetNavDesignerALFunctions.GenerateDesignerPackageZipStreamByVersion(NvOutStream, NAVApp.ID, VersionString);
-        FileName := StrSubstNo(ExtensionFileNameTxt, NAVApp.Name, NAVApp.Publisher, VersionString);
+        FileName := StrSubstNo(ExtensionFileNameTxt, PublishedApplication.Name, PublishedApplication.Publisher, VersionString);
         CleanFileName := DotNetNavDesignerALFunctions.SanitizeDesignerFileName(FileName, '_');
+
+        exit(true);
+    end;
+
+    procedure DownloadExtensionSource(PackageId: Guid): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        NvInStream: InStream;
+        CleanFileName: Text;
+    begin
+        if not GetExtensionSource(PackageId, TempBlob, CleanFileName) then
+            exit(false);
 
         TempBlob.CreateInStream(NvInStream);
 
         exit(DownloadFromStream(NvInStream, DialogTitleTxt, '', '*.*', CleanFileName));
-
     end;
 
     procedure DownloadDeploymentStatusDetails(OperationId: Guid)
@@ -144,14 +197,14 @@ codeunit 2503 "Extension Operation Impl"
         TempBlob: Codeunit "Temp Blob";
         NavOutStream: OutStream;
         NavInStream: InStream;
-        DummyToFile: Text;
+        ToFile: Text;
     begin
         TempBlob.CreateOutStream(NavOutStream);
         GetDeploymentDetailedStatusMessageAsStream(OperationId, NavOutStream);
 
         TempBlob.CreateInStream(NavInStream);
-
-        DownloadFromStream(NavInStream, DialogTitleTxt, '', OutExtTxt, DummyToFile);
+        ToFile := 'Result' + OperationId + '.txt';
+        DownloadFromStream(NavInStream, DialogTitleTxt, '', OutExtTxt, ToFile);
     end;
 
     procedure RefreshStatus(OperationID: Guid)
@@ -162,22 +215,27 @@ codeunit 2503 "Extension Operation Impl"
 
     procedure ConfigureExtensionHttpClientRequestsAllowance(PackageId: Text; AreHttpClientRqstsAllowed: Boolean): Boolean
     var
-        NavApp: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         NavAppSetting: Record "NAV App Setting";
+        PackageIDGuid: Guid;
     begin
         CheckPermissions();
-        if not NavApp.Get(PackageId) then
+
+        Evaluate(PackageIDGuid, PackageId);
+
+        PublishedApplication.SetRange("Package ID", PackageIdGuid);
+        PublishedApplication.SetRange("Tenant Visible", true);
+
+        if not PublishedApplication.FindFirst() then
             exit(false);
 
-        if not NavAppSetting.get(NavApp.ID) then
+        if not NavAppSetting.Get(PublishedApplication.ID) then
             exit(false);
-
 
         NavAppSetting.Validate("Allow HttpClient Requests", AreHttpClientRqstsAllowed);
         NavAppSetting.Modify(true);
 
         exit(true);
-
     end;
 
     local procedure InitializeOperationInvoker()
@@ -190,15 +248,31 @@ codeunit 2503 "Extension Operation Impl"
 
     local procedure CheckPermissions()
     var
-        NAVAppObjectMetadata: Record "NAV App Object Metadata";
+        ApplicationObjectMetadata: Record "Application Object Metadata";
     begin
-        if not NavAppObjectMetadata.ReadPermission() then
+        if not ApplicationObjectMetadata.ReadPermission() then
             Error(NotSufficientPermissionErr);
     end;
 
+#if not CLEAN17
+    [Obsolete('This is the implementation of a method for which the required parameter is not accessible for Cloud development', '17.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var NavAppTenantOperation: Record "NAV App Tenant Operation")
     begin
-        NavAppTenantOperation.FindSet();
+        if not NavAppTenantOperation.FindSet() then
+            exit;
+    end;
+#endif
+
+    procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
+    var
+        NavAppTenantOperation: Record "NAV App Tenant Operation";
+    begin
+        if not NavAppTenantOperation.FindSet() then
+            exit;
+        repeat
+            TempExtensionDeploymentStatus.TransferFields(NavAppTenantOperation, true);
+            TempExtensionDeploymentStatus.Insert();
+        until NavAppTenantOperation.Next() = 0;
     end;
 
     procedure GetDeploymentDetailedStatusMessageAsStream(OperationId: Guid; OutStream: OutStream)
@@ -222,6 +296,21 @@ codeunit 2503 "Extension Operation Impl"
         Publisher := GetDeployOperationAppPublisher(OperationId);
         Version := GetDeployOperationAppVersion(OperationId);
         Schedule := GetDeployOperationSchedule(OperationId);
+    end;
+
+    procedure GetDeployOperationInfo(OperationId: Guid; var Version: Text; var Publisher: Text; var AppName: Text; var AppId: Guid)
+    begin
+        CheckPermissions();
+        AppName := GetDeployOperationAppName(OperationId);
+        AppId := GetDeployOperationAppId(OperationId);
+        Publisher := GetDeployOperationAppPublisher(OperationId);
+        Version := GetDeployOperationAppVersion(OperationId);
+    end;
+
+    procedure GetDeployOperationAppId(OperationId: Guid): Guid
+    begin
+        InitializeOperationInvoker();
+        exit(DotNetALNavAppOperationInvoker.GetDeployOperationAppId(OperationId));
     end;
 
     procedure GetDeployOperationAppName(OperationId: Guid): Text
@@ -256,14 +345,16 @@ codeunit 2503 "Extension Operation Impl"
 
     procedure GetLatestVersionPackageIdByAppId(AppId: Guid): Guid
     var
-        NavAppTable: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         NullGuid: Guid;
     begin
-        NavAppTable.SetRange(ID, AppId);
-        NavAppTable.SetCurrentKey(Name, "Version Major", "Version Minor", "Version Build", "Version Revision");
-        NavAppTable.Ascending(false);
-        if NavAppTable.FindFirst() then
-            exit(NavAppTable."Package ID");
+        PublishedApplication.SetRange(ID, AppId);
+        PublishedApplication.SetRange("Tenant Visible", true);
+        PublishedApplication.SetCurrentKey(Name, "Version Major", "Version Minor", "Version Build", "Version Revision");
+        PublishedApplication.Ascending(false);
+
+        if PublishedApplication.FindFirst() then
+            exit(PublishedApplication."Package ID");
 
         exit(NullGuid);
     end;
@@ -281,41 +372,45 @@ codeunit 2503 "Extension Operation Impl"
 
     procedure GetSpecificVersionPackageIdByAppId(AppId: Guid; Name: Text; VersionMajor: Integer; VersionMinor: Integer; VersionBuild: Integer; VersionRevision: Integer): Guid
     var
-        NavAppTable: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         NullGuid: Guid;
     begin
         if AppId = NullGuid then
             exit(NullGuid);
-        NavAppTable.SetRange(ID, AppId);
-        if Name <> '' then
-            NavAppTable.SetRange(Name, Name);
-        if VersionMajor <> 0 then
-            NavAppTable.SetRange("Version Major", VersionMajor);
-        if VersionMinor <> 0 then
-            NavAppTable.SetRange("Version Minor", VersionMinor);
-        if VersionBuild <> 0 then
-            NavAppTable.SetRange("Version Build", VersionBuild);
-        if VersionRevision <> 0 then
-            NavAppTable.SetRange("Version Revision", VersionRevision);
 
-        if NavAppTable.Count() <> 1 then
+        PublishedApplication.SetRange(ID, AppId);
+        PublishedApplication.SetRange("Tenant Visible", true);
+
+        if Name <> '' then
+            PublishedApplication.SetRange(Name, Name);
+        if VersionMajor <> 0 then
+            PublishedApplication.SetRange("Version Major", VersionMajor);
+        if VersionMinor <> 0 then
+            PublishedApplication.SetRange("Version Minor", VersionMinor);
+        if VersionBuild <> 0 then
+            PublishedApplication.SetRange("Version Build", VersionBuild);
+        if VersionRevision <> 0 then
+            PublishedApplication.SetRange("Version Revision", VersionRevision);
+
+        if PublishedApplication.Count() <> 1 then
             exit(NullGuid);
 
-        if NavAppTable.FindFirst() then
-            exit(NavAppTable."Package ID");
+        if PublishedApplication.FindFirst() then
+            exit(PublishedApplication."Package ID");
     end;
 
     procedure GetExtensionLogo(AppId: Guid; var Logo: Codeunit "Temp Blob")
     var
-        Extension: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         Media: Record Media;
         LogoInStream: Instream;
         LogoOutStream: Outstream;
     begin
-        Extension.SetRange(ID, AppId);
+        PublishedApplication.SetRange(ID, AppId);
+        PublishedApplication.SetRange("Tenant Visible", true);
 
-        if Extension.FindFirst() then begin
-            Media.SetRange(ID, Extension.Logo.MediaId());
+        if PublishedApplication.FindFirst() then begin
+            Media.SetRange(ID, PublishedApplication.Logo.MediaId());
 
             if not Media.FindFirst() then
                 exit;
@@ -326,6 +421,27 @@ codeunit 2503 "Extension Operation Impl"
             Logo.CreateOutstream(LogoOutStream);
             CopyStream(LogoOutStream, LogoInStream);
         end;
+    end;
+
+    procedure GetAppName(AppId: Guid) AppName: Text
+    var
+        PublishedApplication: Record "Published Application";
+    begin
+        if PublishedApplication.ReadPermission then begin
+            PublishedApplication.SetRange(ID, AppId);
+            PublishedApplication.SetRange("Tenant Visible", true);
+
+            if PublishedApplication.FindFirst() then
+                AppName := PublishedApplication.Name;
+        end;
+    end;
+
+    internal procedure GetAppName(AppId: Guid; OperationId: Guid) AppName: Text
+    begin
+        AppName := GetAppName(AppId);
+
+        if AppName = '' then
+            AppName := GetDeployOperationAppName(OperationId);
     end;
 }
 

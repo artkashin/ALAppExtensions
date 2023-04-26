@@ -10,6 +10,9 @@ Use this module to retrieve the following:
 
 This module is meant for on-premises use only.
 
+**Note** 
+Azure Active Directory Graph is being retired, and we recommend that you start using Microsoft Graph instead. To avoid causing issues with apps that use the Azure AD Graph module in [!INCLUDE[prod_short](../developer/includes/prod_short.md)], we haven't changed its name or the names of the objects it contains. For more information about the Azure Active Directory Graph retirement, see [Migrate Azure AD Graph apps to Microsoft Graph](/graph/migrate-azure-ad-graph-overview).
+
 # Public Objects
 ## Azure AD Graph (Codeunit 9012)
 
@@ -24,14 +27,15 @@ This module is meant for on-premises use only.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUser(UserPrincipalName: Text; var UserInfo: DotNet UserInfo)
 ```
 #### Parameters
-*UserPrincipalName ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
+*UserPrincipalName ([Text](https://go.microsoft.com/fwlink/?linkid=2210031))* 
 
 The user principal name.
 
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user to return.
 
@@ -43,10 +47,11 @@ The user to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetCurrentUser(var UserInfo: DotNet UserInfo)
 ```
 #### Parameters
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user to return.
 
@@ -58,14 +63,15 @@ The user to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUserByAuthorizationEmail(AuthorizationEmail: Text; var UserInfo: DotNet UserInfo)
 ```
 #### Parameters
-*AuthorizationEmail ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
+*AuthorizationEmail ([Text](https://go.microsoft.com/fwlink/?linkid=2210031))* 
 
 The user's authorization email.
 
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user to return.
 
@@ -77,14 +83,15 @@ The user to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUserByObjectId(ObjectId: Text; var UserInfo: DotNet UserInfo)
 ```
 #### Parameters
-*ObjectId ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
+*ObjectId ([Text](https://go.microsoft.com/fwlink/?linkid=2210031))* 
 
 The object ID assigned to the user.
 
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user to return.
 
@@ -96,19 +103,20 @@ The user to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure TryGetUserByObjectId(ObjectId: Text; var UserInfo: DotNet UserInfo): Boolean
 ```
 #### Parameters
-*ObjectId ([Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type))* 
+*ObjectId ([Text](https://go.microsoft.com/fwlink/?linkid=2210031))* 
 
 The object ID assigned to the user.
 
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user to return.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 A boolean that indicates whether the user was retrieved.
 ### GetUserAssignedPlans (Method) <a name="GetUserAssignedPlans"></a> 
@@ -116,17 +124,20 @@ A boolean that indicates whether the user was retrieved.
  Gets the assigned plans for the specified user from Azure AD.
  
 
+If the provided user is null, the output parameter holding the assigned plans remains unchanged.
+
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUserAssignedPlans(UserInfo: DotNet UserInfo; var UserAssignedPlans: DotNet GenericList1)
 ```
 #### Parameters
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user.
 
-*UserAssignedPlans ([DotNet GenericList1](https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1?view=netframework-4.8))* 
+*UserAssignedPlans ([DotNet GenericList1](https://go.microsoft.com/fwlink/?linkid=2209955))* 
 
 The assigned plans for the user.
 
@@ -135,17 +146,20 @@ The assigned plans for the user.
  Gets the roles assigned to the user from Azure AD.
  
 
+If the provided user is null, the output parameter holding the user roles remains unchanged.
+
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUserRoles(UserInfo: DotNet UserInfo; var UserRoles: DotNet GenericIEnumerable1)
 ```
 #### Parameters
-*UserInfo ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*UserInfo ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The user for whom to retrieve the roles.
 
-*UserRoles ([DotNet GenericIEnumerable1](https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1?view=netframework-4.8))* 
+*UserRoles ([DotNet GenericIEnumerable1](https://go.microsoft.com/fwlink/?linkid=2210121))* 
 
 The user's roles.
 
@@ -157,10 +171,11 @@ The user's roles.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetDirectorySubscribedSkus(var DirectorySubscribedSkus: DotNet GenericIEnumerable1)
 ```
 #### Parameters
-*DirectorySubscribedSkus ([DotNet GenericIEnumerable1](https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1?view=netframework-4.8))* 
+*DirectorySubscribedSkus ([DotNet GenericIEnumerable1](https://go.microsoft.com/fwlink/?linkid=2210121))* 
 
 The list of subscriptions to return.
 
@@ -172,10 +187,11 @@ The list of subscriptions to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetDirectoryRoles(var DirectoryRoles: DotNet GenericIEnumerable1)
 ```
 #### Parameters
-*DirectoryRoles ([DotNet GenericIEnumerable1](https://docs.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1?view=netframework-4.8))* 
+*DirectoryRoles ([DotNet GenericIEnumerable1](https://go.microsoft.com/fwlink/?linkid=2210121))* 
 
 The directory roles to return.
 
@@ -187,6 +203,7 @@ The directory roles to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetTenantDetail(var TenantInfo: DotNet TenantInfo)
 ```
 #### Parameters
@@ -202,31 +219,17 @@ The tenant details to return.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetUsersPage(NumberOfUsers: Integer; var UserInfoPage: DotNet UserInfoPage)
 ```
 #### Parameters
-*NumberOfUsers ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*NumberOfUsers ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The number of users to return.
 
 *UserInfoPage ([DotNet UserInfoPage]())* 
 
 The list of users to return.
-
-### SetTestInProgress (Method) <a name="SetTestInProgress"></a> 
-
- Sets a flag that is used to determine whether a test is in progress or not.
- 
-
-#### Syntax
-```
-[Scope('OnPrem')]
-procedure SetTestInProgress(TestInProgress: Boolean)
-```
-#### Parameters
-*TestInProgress ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
-
-The value to be set to the flag.
 
 ### OnInitialize (Event) <a name="OnInitialize"></a> 
 
@@ -237,6 +240,7 @@ The value to be set to the flag.
 ```
 [IntegrationEvent(false, false)]
 [Scope('OnPrem')]
+[NonDebuggable]
 internal procedure OnInitialize(var GraphQuery: DotNet GraphQuery)
 ```
 #### Parameters

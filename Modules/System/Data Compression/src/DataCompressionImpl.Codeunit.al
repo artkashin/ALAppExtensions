@@ -6,87 +6,116 @@
 codeunit 421 "Data Compression Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         TempBlobZip: Codeunit "Temp Blob";
         ZipArchive: DotNet ZipArchive;
         ZipArchiveMode: DotNet ZipArchiveMode;
+        GZipStream: DotNet GZipStream;
 
     procedure CreateZipArchive()
     var
-        OutputStream: OutStream;
+        OutputOutStream: OutStream;
     begin
         Clear(TempBlobZip);
-        TempBlobZip.CreateOutStream(OutputStream);
-        ZipArchive := ZipArchive.ZipArchive(OutputStream, ZipArchiveMode.Create);
+        TempBlobZip.CreateOutStream(OutputOutStream);
+        ZipArchive := ZipArchive.ZipArchive(OutputOutStream, ZipArchiveMode.Create);
     end;
 
-    procedure OpenZipArchive(InputStream: InStream; OpenForUpdate: Boolean)
+    procedure GZipCompress(InputInStream: InStream; CompressedOutStream: OutStream)
+    var
+        DotNetCompressionMode: DotNet CompressionMode;
+    begin
+        GZipStream := GZipStream.GZipStream(CompressedOutStream, DotNetCompressionMode::Compress);
+        CopyStream(GZipStream, InputInStream);
+        GZipStream.Dispose();
+    end;
+
+    procedure GZipDecompress(InputInStream: InStream; DecompressedOutStream: OutStream)
+    var
+        DotNetCompressionMode: DotNet CompressionMode;
+    begin
+        GZipStream := GZipStream.GZipStream(InputInStream, DotNetCompressionMode::Decompress);
+        GZipStream.CopyTo(DecompressedOutStream);
+        GZipStream.Dispose();
+    end;
+
+    procedure OpenZipArchive(InputInStream: InStream; OpenForUpdate: Boolean)
     var
         DefaultEncoding: DotNet Encoding;
     begin
-        DefaultEncoding := DefaultEncoding.Default();
-        OpenZipArchive(InputStream, OpenForUpdate, DefaultEncoding.CodePage());
+        DefaultEncoding := DefaultEncoding.GetEncoding(0);
+        OpenZipArchive(InputInStream, OpenForUpdate, DefaultEncoding.CodePage());
     end;
 
-    procedure OpenZipArchive(InputStream: InStream; OpenForUpdate: Boolean; EncodingCodePageNumber: Integer)
+    procedure OpenZipArchive(InputInStream: InStream; OpenForUpdate: Boolean; EncodingCodePageNumber: Integer)
     var
         Encoding: DotNet Encoding;
         Mode: DotNet ZipArchiveMode;
-        OutputStream: OutStream;
+        OutputOutStream: OutStream;
     begin
         Encoding := Encoding.GetEncoding(EncodingCodePageNumber);
         Clear(TempBlobZip);
-        TempBlobZip.CreateOutStream(OutputStream);
-        CopyStream(OutputStream, InputStream);
+        TempBlobZip.CreateOutStream(OutputOutStream);
+        CopyStream(OutputOutStream, InputInStream);
 
         if (OpenForUpdate) then
             Mode := ZipArchiveMode.Update
         else
             Mode := ZipArchiveMode.Read;
 
-        ZipArchive := ZipArchive.ZipArchive(OutputStream, Mode, false, Encoding)
+        ZipArchive := ZipArchive.ZipArchive(OutputOutStream, Mode, false, Encoding)
     end;
 
     procedure OpenZipArchive(TempBlob: Codeunit "Temp Blob"; OpenForUpdate: Boolean)
     var
-        InputStream: InStream;
+        InputInStream: InStream;
     begin
-        TempBlob.CreateInStream(InputStream);
-        OpenZipArchive(InputStream, OpenForUpdate);
+        TempBlob.CreateInStream(InputInStream);
+        OpenZipArchive(InputInStream, OpenForUpdate);
     end;
 
-    procedure SaveZipArchive(OutputStream: OutStream)
+    procedure SaveZipArchive(OutputOutStream: OutStream)
     var
-        InputStream: InStream;
+        InputInStream: InStream;
     begin
+        if IsNull(ZipArchive) then
+            exit;
         ZipArchive.Dispose();
-        TempBlobZip.CreateInStream(InputStream);
-        CopyStream(OutputStream, InputStream);
+        TempBlobZip.CreateInStream(InputInStream);
+        CopyStream(OutputOutStream, InputInStream);
         Clear(TempBlobZip);
     end;
 
     procedure SaveZipArchive(var TempBlob: Codeunit "Temp Blob")
     var
-        OutputStream: OutStream;
+        OutputOutStream: OutStream;
     begin
+        if IsNull(ZipArchive) then
+            exit;
         Clear(TempBlob);
-        TempBlob.CreateOutStream(OutputStream);
-        SaveZipArchive(OutputStream);
+        TempBlob.CreateOutStream(OutputOutStream);
+        SaveZipArchive(OutputOutStream);
     end;
 
     procedure CloseZipArchive()
     begin
-        if not IsNull(ZipArchive) then
+        if not IsNull(ZipArchive) then begin
             ZipArchive.Dispose();
+            Clear(TempBlobZip);
+        end;
     end;
 
-    procedure IsGZip(InStream: InStream): Boolean
+    procedure IsGZip(InputInStream: InStream): Boolean
     var
+        OriginalStream: DotNet Stream;
         ID: array[2] of Byte;
     begin
-        InStream.Read(ID[1]);
-        InStream.Read(ID[2]);
+        OriginalStream := InputInStream;
+        InputInStream.Read(ID[1]);
+        InputInStream.Read(ID[2]);
 
         // from GZIP file format specification version 4.3
         // Member header and trailer
@@ -94,6 +123,8 @@ codeunit 421 "Data Compression Impl."
         // ID2 (IDentification 2)
         // These have the fixed values ID1 = 31 (0x1f, \037), ID2 = 139 (0x8b, \213), to identify the file as being in gzip format.
 
+        OriginalStream.Position := 0;
+        InputInStream := OriginalStream;
         exit((ID[1] = 31) and (ID[2] = 139));
     end;
 
@@ -108,24 +139,29 @@ codeunit 421 "Data Compression Impl."
         end;
     end;
 
-    procedure ExtractEntry(EntryName: Text; OutputStream: OutStream; var EntryLength: Integer)
+    procedure ExtractEntry(EntryName: Text; OutputOutStream: OutStream; var EntryLength: Integer)
     var
         ZipArchiveEntry: DotNet ZipArchiveEntry;
         ZipArchiveEntryStream: DotNet Stream;
     begin
         ZipArchiveEntry := ZipArchive.GetEntry(EntryName);
         ZipArchiveEntryStream := ZipArchiveEntry.Open();
-        ZipArchiveEntryStream.CopyTo(OutputStream);
+        ZipArchiveEntryStream.CopyTo(OutputOutStream);
         EntryLength := ZipArchiveEntry.Length();
         ZipArchiveEntryStream.Close();
     end;
 
-    procedure AddEntry(StreamToAdd: InStream; PathInArchive: Text)
+    procedure AddEntry(InStreamToAdd: InStream; PathInArchive: Text)
     var
         ZipArchiveEntry: DotNet ZipArchiveEntry;
     begin
         ZipArchiveEntry := ZipArchive.CreateEntry(PathInArchive);
-        CopyStream(ZipArchiveEntry.Open(), StreamToAdd);
+        CopyStream(ZipArchiveEntry.Open(), InStreamToAdd);
+    end;
+
+    procedure RemoveEntry(PathInArchive: Text)
+    begin
+        ZipArchive.GetEntry(PathInArchive).Delete();
     end;
 }
 

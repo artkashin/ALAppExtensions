@@ -14,6 +14,10 @@ page 2508 "Extension Deployment Status"
     RefreshOnActivate = true;
     SourceTable = "NAV App Tenant Operation";
     ContextSensitiveHelpPage = 'ui-extensions';
+    Permissions = tabledata "Nav App Tenant Operation" = r;
+    UsageCategory = Administration;
+    ApplicationArea = All;
+    Caption = 'Extension Installation Status';
 
     layout
     {
@@ -25,19 +29,20 @@ page 2508 "Extension Deployment Status"
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the App.';
+                    ToolTip = 'Specifies the name of the app.';
                 }
                 field(Publisher; AppPublisher)
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';
-                    ToolTip = 'Specifies the name of the App Publisher.';
+                    ToolTip = 'Specifies the name of the app Publisher.';
                 }
                 field("Operation Type"; OperationType)
                 {
                     ApplicationArea = All;
                     Caption = 'Operation Type';
                     ToolTip = 'Specifies the deployment type.';
+                    OptionCaption = 'Upload,Install';
                 }
                 field(Status; Status)
                 {
@@ -49,14 +54,14 @@ page 2508 "Extension Deployment Status"
                 {
                     ApplicationArea = All;
                     Caption = 'Schedule';
-                    ToolTip = 'Specifies the deployment Schedule.';
+                    ToolTip = 'Specifies the deployment schedule.';
                     Width = 12;
                 }
                 field(AppVersion; Version)
                 {
                     ApplicationArea = All;
                     Caption = 'App Version';
-                    ToolTip = 'Specifies the version of the App.';
+                    ToolTip = 'Specifies the version of the app.';
                     Width = 6;
                 }
                 field("Started On"; "Started On")
@@ -76,6 +81,7 @@ page 2508 "Extension Deployment Status"
             action(View)
             {
                 ApplicationArea = All;
+                ToolTip = 'Specifies the status of the deployment.';
                 Image = View;
                 Scope = Repeater;
                 ShortCutKey = 'Return';
@@ -86,8 +92,9 @@ page 2508 "Extension Deployment Status"
                     ExtnDeploymentStatusDetail: Page "Extn Deployment Status Detail";
                 begin
                     ExtnDeploymentStatusDetail.SetRecord(Rec);
+                    ExtnDeploymentStatusDetail.SetOperationRecord(Rec);
+                    ExtnDeploymentStatusDetail.Update();
                     ExtnDeploymentStatusDetail.Run();
-                    CurrPage.Update();
                 end;
             }
         }

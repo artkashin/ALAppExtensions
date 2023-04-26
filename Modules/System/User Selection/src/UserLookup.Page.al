@@ -15,6 +15,7 @@ page 9843 "User Lookup"
     PageType = List;
     SourceTable = User;
     SourceTableView = SORTING("User Name");
+    Permissions = tabledata User = r;
 
     layout
     {
@@ -61,10 +62,10 @@ page 9843 "User Lookup"
 
     trigger OnOpenPage()
     var
-        EnvironmentInfo: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
         UserSelectionImpl.HideExternalUsers(Rec);
-        IsSaaS := EnvironmentInfo.IsSaaS();
+        IsSaaS := EnvironmentInformation.IsSaaS();
     end;
 
     var

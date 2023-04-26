@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 page 130452 "Select Tests By Range"
 {
     PageType = StandardDialog;
@@ -12,6 +17,7 @@ page 130452 "Select Tests By Range"
                 field("Selection Filter"; SelectionFilter)
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies the selection filter.';
                     Caption = 'Selection Filter';
                 }
             }

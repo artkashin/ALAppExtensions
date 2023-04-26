@@ -6,6 +6,10 @@
 codeunit 9171 "Default Role Center Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "All Profile" = rm,
+                  tabledata AllObjWithCaption = r;
 
     // <summary>
     // Gets the default Role Center ID for the current user.
@@ -16,13 +20,17 @@ codeunit 9171 "Default Role Center Impl."
     var
         AllProfile: Record "All Profile";
         DefaultRoleCenter: Codeunit "Default Role Center";
+        CurrentModuleInfo: ModuleInfo;
         RoleCenterId: Integer;
         Handled: Boolean;
     begin
         DefaultRoleCenter.OnBeforeGetDefaultRoleCenter(RoleCenterId, Handled);
 
         if not IsValidRoleCenterId(RoleCenterId) then begin
-            AllProfile.Get(AllProfile.Scope::Tenant, '63ca2fa4-4f03-4f2b-a480-172fef340d3f', 'BLANK');
+            Session.LogMessage('0000DUH', StrSubstNo(InvalidRoleCenterIDTelemetryMsg, RoleCenterId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+
+            NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+            AllProfile.Get(AllProfile.Scope::Tenant, CurrentModuleInfo.Id, 'BLANK');
             if not AllProfile.Enabled then begin
                 AllProfile.Enabled := true;
                 AllProfile.Modify();
@@ -33,10 +41,12 @@ codeunit 9171 "Default Role Center Impl."
         exit(RoleCenterId);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetDefaultRoleCenterID', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetDefaultRoleCenterID, '', false, false)]
     local procedure OnGetDefaultRoleCenterId(var ID: Integer)
     begin
+        Session.LogMessage('0000DUF', StartingGetDefaultRoleCenterMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         ID := GetDefaultRoleCenterId();
+        Session.LogMessage('0000DUI', StrSubstNo(EndGetDefaultRoleCenterMsg, ID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
     end;
 
     local procedure IsValidRoleCenterId(RoleCenterId: Integer): Boolean
@@ -52,5 +62,11 @@ codeunit 9171 "Default Role Center Impl."
 
         exit(not AllObjWithCaption.IsEmpty());
     end;
+
+    var
+        InvalidRoleCenterIDTelemetryMsg: Label 'Invalid Role Center ID %1, setting blank profile.', Locked = true;
+        StartingGetDefaultRoleCenterMsg: Label 'Getting default role center', Locked = true;
+        EndGetDefaultRoleCenterMsg: Label 'Found default role center: %1.', Locked = true;
+        TelemetryCategoryTxt: Label 'AL Default RC', Locked = true;
 }
 

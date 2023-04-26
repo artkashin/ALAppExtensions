@@ -6,7 +6,10 @@
 table 1433 "Net Promoter Score"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     DataPerCompany = false;
+    ReplicateData = false;
 
     fields
     {

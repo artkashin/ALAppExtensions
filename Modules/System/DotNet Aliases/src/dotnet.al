@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,7 +7,6 @@ dotnet
 {
     assembly("DocumentFormat.OpenXml")
     {
-        PublicKeyToken = '8fb06cb64d019a17';
 
         type("DocumentFormat.OpenXml.BooleanValue"; "BooleanValue")
         {
@@ -265,31 +264,11 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Framework.UI.WinForms.DataVisualization.Timeline")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Framework.UI.WinForms.DataVisualization.TimelineVisualization.DataModel+TransactionChangesDataTable"; "DataModel_TransactionChangesDataTable")
-        {
-        }
-
-        type("Microsoft.Dynamics.Framework.UI.WinForms.DataVisualization.TimelineVisualization.DataModel+TransactionChangesRow"; "DataModel_TransactionChangesRow")
-        {
-        }
-
-        type("Microsoft.Dynamics.Framework.UI.WinForms.DataVisualization.TimelineVisualization.DataModel+TransactionDataTable"; "DataModel_TransactionDataTable")
-        {
-        }
-
-        type("Microsoft.Dynamics.Framework.UI.WinForms.DataVisualization.TimelineVisualization.DataModel+TransactionRow"; "DataModel_TransactionRow")
-        {
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.AzureADGraphClient")
     {
+        type("Microsoft.Dynamics.Nav.AzureADGraphClient.GroupInfoPage"; "GroupInfoPage")
+        {
+        }
 
         type("Microsoft.Dynamics.Nav.AzureADGraphClient.GraphQuery"; "GraphQuery")
         {
@@ -302,7 +281,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.AzureMLWrapper")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -323,20 +301,8 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Client.BusinessChart")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Client.BusinessChart.BusinessChartAddIn"; "BusinessChartAddIn")
-        {
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.Client.BusinessChart.Model")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -373,37 +339,12 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Client.DynamicsOnlineConnect")
-    {
-
-        type("Microsoft.Dynamics.Nav.Client.DynamicsOnlineConnect.IDynamicsOnlineConnectControlDefinition"; "Microsoft.Dynamics.Nav.Client.DynamicsOnlineConnect")
-        {
-            IsControlAddin = true;
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.Client.PageReady")
     {
 
         type("Microsoft.Dynamics.Nav.Client.PageReady.IPageReady"; "Microsoft.Dynamics.Nav.Client.PageReady")
         {
             IsControlAddin = true;
-        }
-    }
-
-    assembly("Microsoft.Dynamics.Nav.Client.TimelineVisualization")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Client.TimelineVisualization.VisualizationScenarios"; "VisualizationScenarios")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Client.TimelineVisualization.InteractiveTimelineVisualizationAddIn"; "Microsoft.Dynamics.Nav.Client.TimelineVisualization")
-        {
-            IsControlAddIn = true;
         }
     }
 
@@ -418,17 +359,8 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.ClientExtensions")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Client.Capabilities.CameraOptions"; "CameraOptions")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Client.Capabilities.CameraProvider"; "CameraProvider")
-        {
-        }
 
         type("Microsoft.Dynamics.Nav.Client.Capabilities.DeviceContact"; "DeviceContact")
         {
@@ -442,7 +374,19 @@ dotnet
         {
         }
 
+        type("Microsoft.Dynamics.Nav.Client.Capabilities.LocationStatus"; LocationStatus)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Client.Capabilities.Coordinate"; Coordinate)
+        {
+        }
+
         type("Microsoft.Dynamics.Nav.Client.Capabilities.LocationProvider"; "LocationProvider")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Client.Capabilities.LocationOptions"; LocationOptions)
         {
         }
 
@@ -469,7 +413,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.CrmCustomizationHelper")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -500,7 +443,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.DocumentService")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -511,18 +453,22 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.DocumentService.Types")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
         type("Microsoft.Dynamics.Nav.DocumentService.Types.IDocumentService"; "IDocumentService")
         {
         }
+        type("Microsoft.Dynamics.Nav.DocumentService.Types.ConflictBehavior"; "ConflictBehavior")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.DocumentService.Types.UploadedDocument"; "UploadedDocument")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.EtwListener")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -589,7 +535,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.ImageProcessing")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -668,23 +613,20 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Management.DSObjectPickerWrapper")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Management.DSObjectPicker.DSObjectPickerWrapper"; "DSObjectPickerWrapper")
-        {
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.NavUserAccount")
     {
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
         type("Microsoft.Dynamics.Nav.NavDocumentService.NavDocumentServiceHelper"; "NavDocumentServiceHelper")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.NavUserAccount.NavPermissionSetRelation[]"; "NavPermissionSetRelationArray")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.NavUserAccount.NavPermissionSetRelation"; "NavPermissionSetRelation")
         {
         }
 
@@ -703,6 +645,13 @@ dotnet
         PublicKeyToken = '31bf3856ad364e35';
 
         type("Microsoft.Dynamics.Nav.Runtime.ALAzureAdCodeGrantFlow"; "ALAzureAdCodeGrantFlow")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.CompoundTokenInfo"; "CompoundTokenInfo")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.Runtime.NavSqlConnectionTelemetry"; "NavSqlConnectionTelemetry")
         {
         }
 
@@ -733,22 +682,70 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.WebServiceActionContext+StatusCode"; "WebServiceActionContext_StatusCode")
         {
         }
-    }
 
-    assembly("Microsoft.Dynamics.Nav.O365ActionableMessageWrapper")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALFunctions"; "NavDesignerALFunctions")
+        {
+        }
 
-        type("Microsoft.Dynamics.Nav.O365ActionableMessageWrapper.ActionableMessage"; "ActionableMessage")
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileImporter"; "NavDesignerALProfileImporter")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileReadResponse"; "NavDesignerProfileReadResponse")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileReadResponse"; "NavDesignerALProfileReadResponse")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALImportProfileKey"; "NavDesignerALImportProfileKey")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileImportResponse"; "NavDesignerProfileImportResponse")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileImportResponse"; "NavDesignerALProfileImportResponse")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Diagnostics.NavDesignerDiagnostic"; "NavDesignerDiagnostic")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Diagnostics.NavDesignerDiagnosticSeverity"; "NavDesignerDiagnosticSeverity")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Supportability.NavDesignerPageCustomizationValidationBase"; "NavDesignerPageCustomizationValidationBase")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Supportability.NavDesignerConfigurationPageCustomizationValidation"; "NavDesignerConfigurationPageCustomizationValidation")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Supportability.NavDesignerPersonalizationPageCustomizationValidation"; "NavDesignerPersonalizationPageCustomizationValidation")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.Supportability.NavDesignerCompilationResult"; "NavDesignerCompilationResult")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALProfileExportResponse"; "NavDesignerALProfileExportResponse")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALCopyResponse"; "NavDesignerALCopyResponse")
         {
         }
     }
 
     assembly("Microsoft.Dynamics.Nav.OAuth")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -767,7 +764,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.OLSync.Common")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -782,7 +778,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.NAV.OLSync.OLSyncSupplier")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -801,9 +796,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.OpenXml")
     {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
 
         type("Microsoft.Dynamics.Nav.OpenXml.Spreadsheet.CellData"; "CellData")
         {
@@ -838,20 +830,22 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.PdfWriter")
+    assembly("Microsoft.BusinessCentral.DocumentProcessor")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
-        type("Microsoft.Dynamics.Nav.PdfWriter.WordToPdf"; "WordToPdf")
+        type("Microsoft.BusinessCentral.DocumentProcessor.WordTransformation"; "WordTransformation")
+        {
+        }
+
+        type("Microsoft.BusinessCentral.DocumentProcessor.MailMerge"; "MailMerge")
         {
         }
     }
 
     assembly("Microsoft.Dynamics.Nav.PowerBIEmbedded")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -892,24 +886,8 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.PowerShellRunner")
-    {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.PowerShellRunner"; "PowerShellRunner")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PSObjectAdapter"; "PSObjectAdapter")
-        {
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.SMTP")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -924,7 +902,6 @@ dotnet
 
     assembly("Microsoft.Dynamics.Nav.Timer")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -1016,9 +993,9 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Exchange.WebServices")
+    assembly("Microsoft.Exchange.WebServices.NETStandard")
     {
-        Version = '15.0.0.0';
+        Version = '2.2.1.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -1039,60 +1016,393 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Office.Interop.Word")
+    assembly("Newtonsoft.Json")
     {
-        Version = '15.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '71e9bce111e9429c';
 
-        type("Microsoft.Office.Interop.Word.ApplicationClass"; "ApplicationClass")
+        type("Newtonsoft.Json.Formatting"; "Formatting")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.Bookmark"; "Bookmark")
+        type("Newtonsoft.Json.JsonConvert"; "JsonConvert")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.Document"; "Document")
+        type("Newtonsoft.Json.JsonSerializer"; "JsonSerializer")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.DocumentClass"; "DocumentClass")
+        type("Newtonsoft.Json.JsonTextReader"; "JsonTextReader")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.InlineShape"; "InlineShape")
+        type("Newtonsoft.Json.JsonTextWriter"; "JsonTextWriter")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.LinkFormat"; "LinkFormat")
+        type("Newtonsoft.Json.Linq.JArray"; "JArray")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.OLEFormat"; "OLEFormat")
+        type("Newtonsoft.Json.Linq.JObject"; "JObject")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.Shape"; "Shape")
+        type("Newtonsoft.Json.Linq.JProperty"; "JProperty")
         {
         }
 
-        type("Microsoft.Office.Interop.Word.WdWindowState"; "WdWindowState")
+        type("Newtonsoft.Json.Linq.JToken"; "JToken")
+        {
+        }
+
+        type("Newtonsoft.Json.Linq.JValue"; "JValue")
         {
         }
     }
 
-    assembly("mscorlib")
+    assembly("Microsoft.Dynamics.Nav.PluralizationService")
+    {
+        type("Microsoft.Dynamics.Nav.PluralizationService.PluralizationService"; "PluralizationService")
+        {
+        }
+    }
+
+    assembly("System.Drawing")
+    {
+        type("System.Drawing.ImageFormatConverter"; "ImageFormatConverter")
+        {
+        }
+    }
+
+    assembly("System.Drawing.Common")
+    {
+        type("System.Drawing.Bitmap"; "Bitmap")
+        {
+        }
+
+        type("System.Drawing.ColorTranslator"; "ColorTranslator")
+        {
+        }
+
+        type("System.Drawing.Graphics"; "Graphics")
+        {
+        }
+
+        type("System.Drawing.GraphicsUnit"; "GraphicsUnit")
+        {
+        }
+
+        type("System.Drawing.Imaging.EncoderParameters"; "EncoderParameters")
+        {
+        }
+
+        type("System.Drawing.Imaging.EncoderParameter"; "EncoderParameter")
+        {
+        }
+
+        type("System.Drawing.Imaging.EncoderParameter[]"; "EncoderParameterList")
+        {
+        }
+
+        type("System.Drawing.Imaging.ImageCodecInfo"; "ImageCodecInfo")
+        {
+        }
+
+        type("System.Drawing.Imaging.Encoder"; "Encoder")
+        {
+        }
+
+        type("System.Drawing.Image"; "Image")
+        {
+        }
+
+        type("System.Drawing.Imaging.ImageFormat"; "ImageFormat")
+        {
+        }
+
+        type("System.Drawing.Imaging.PropertyItem"; "PropertyItem")
+        {
+        }
+
+        type("System.Drawing.Printing.PrinterSettings"; "PrinterSettings")
+        {
+        }
+
+        type("System.Drawing.Printing.PrinterSettings+StringCollection"; "PrinterSettings_StringCollection")
+        {
+        }
+
+        type("System.Drawing.SolidBrush"; "SolidBrush")
+        {
+        }
+    }
+
+    assembly("System.IdentityModel.Tokens.Jwt")
     {
 
-        type("Microsoft.Win32.Registry"; "Registry")
+        type("System.IdentityModel.Tokens.Jwt.JwtSecurityToken"; "JwtSecurityToken")
         {
         }
 
-        type("System.Activator"; "Activator")
+        type("System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler"; "JwtSecurityTokenHandler")
+        {
+        }
+    }
+
+    assembly("System.Security.Cryptography.Xml")
+    {
+
+        type("System.Security.Cryptography.Xml.DataObject"; DataObject)
         {
         }
 
+        type("System.Security.Cryptography.Xml.KeyInfo"; "KeyInfo")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.KeyInfoClause"; "KeyInfoClause")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.KeyInfoNode"; "KeyInfoNode")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.Reference"; "Reference")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.SignedInfo"; "SignedInfo")
+        {
+        }
+        type("System.Security.Cryptography.Xml.SignedXml"; "SignedXml")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.Transform"; "Transform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDecryptionTransform"; "XmlDecryptionTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigBase64Transform"; "XmlDsigBase64Transform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigC14NTransform"; "XmlDsigC14NTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigEnvelopedSignatureTransform"; "XmlDsigEnvelopedSignatureTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigExcC14NTransform"; "XmlDsigExcC14NTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigXPathTransform"; "XmlDsigXPathTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlDsigXsltTransform"; "XmlDsigXsltTransform")
+        {
+        }
+
+        type("System.Security.Cryptography.Xml.XmlLicenseTransform"; "XmlLicenseTransform")
+        {
+        }
+    }
+
+    assembly("System.ServiceModel.Primitives")
+    {
+        type("System.ServiceModel.FaultException"; "FaultException")
+        {
+        }
+    }
+
+    assembly("MailKit")
+    {
+        Version = '2.15.0.0';
+        Culture = 'neutral';
+        PublicKeyToken = '4e064fe7c44a8f1b';
+
+        type("MailKit.Net.Smtp.SmtpClient"; "SmtpClient")
+        {
+        }
+
+        type("MailKit.ITransferProgress"; "ITransferProgress")
+        {
+        }
+
+        type("MailKit.CommandException"; "CommandException")
+        {
+        }
+
+        type("MailKit.Net.Smtp.SmtpCommandException"; "SmtpCommandException")
+        {
+        }
+
+        type("MailKit.Security.SecureSocketOptions"; "SecureSocketOptions")
+        {
+        }
+
+        type("MailKit.Security.SaslMechanismOAuth2"; "SaslMechanismOAuth2")
+        {
+        }
+
+        type("MailKit.Security.SaslMechanismNtlm"; "SaslMechanismNtlm")
+        {
+        }
+    }
+
+    assembly("MimeKit")
+    {
+        Version = '2.15.0.0';
+        Culture = 'neutral';
+        PublicKeyToken = 'bede1c8a46c66814';
+
+        type("MimeKit.BodyBuilder"; "MimeBodyBuilder")
+        {
+        }
+
+        type("MimeKit.MimeMessage"; "MimeMessage")
+        {
+        }
+
+        type("MimeKit.MailboxAddress"; "MimeMailboxAddress")
+        {
+        }
+
+        type("MimeKit.InternetAddressList"; "InternetAddressList")
+        {
+        }
+
+        type("MimeKit.InternetAddress"; "InternetAddress")
+        {
+        }
+
+        type("MimeKit.MimeEntity"; "MimeEntity")
+        {
+        }
+
+        type("MimeKit.Utils.MimeUtils"; "MimeUtils")
+        {
+        }
+
+        type("MimeKit.ContentType"; "MimeContentType")
+        {
+        }
+
+        type("MimeKit.MimePart"; "MimePart")
+        {
+        }
+
+        type("MimeKit.ContentObject"; "MimeContentObject")
+        {
+        }
+    }
+
+    assembly("IDAutomation.LinearFontEncoder")
+    {
+        type("IDAutomation.Linear.FontEncoder"; "FontEncoder")
+        {
+        }
+    }
+
+    assembly("IDAutomation.NetStandard.Aztec.FontEncoder")
+    {
+        type("IDAutomation.NetStandard.Aztec.FontEncoder.Aztec"; "AztecFontEncoder")
+        {
+        }
+        type("EncodingModes"; "EncodingModesAztec")
+        {
+        }
+        type("OutputTypes"; "OutputTypesAztec")
+        {
+        }
+    }
+
+
+    assembly("IDAutomation.NetStandard.DataMatrix.FontEncoder")
+    {
+        type("IDAutomation.NetStandard.DataMatrix.FontEncoder.DataMatrix"; "DataMatrixFontEncoder")
+        {
+        }
+        type("EncodingModes"; "EncodingModesDM")
+        {
+        }
+        type("OutputTypes"; "OutputTypesDM")
+        {
+        }
+    }
+
+    assembly("IDAutomation.NetStandard.MaxiCode.FontEncoder")
+    {
+        type("IDAutomation.NetStandard.MaxiCode.FontEncoder.MaxiCode"; "MaxiCodeFontEncoder")
+        {
+        }
+        type("EncodingModes"; "EncodingModesMaxiCode")
+        {
+        }
+    }
+
+    assembly("IDAutomation.NetStandard.PDF417.FontEncoder")
+    {
+        type("IDAutomation.NetStandard.PDF417.FontEncoder.PDF417"; "PDF417FontEncoder")
+        {
+        }
+        type("IDAutomation.NetStandard.PDF417.FontEncoder.EncodingModes"; "EncodingModesPDF417")
+        {
+        }
+        type("IDAutomation.NetStandard.PDF417.FontEncoder.OutputTypes"; "OutputTypesPDF417")
+        {
+        }
+    }
+
+    assembly("IDAutomation.NetStandard.QRCode.FontEncoder")
+    {
+        type("IDAutomation.NetStandard.QRCode.FontEncoder.QRCode"; "QRCodeFontEncoder")
+        {
+        }
+        type("EncodingModes"; "EncodingModesQR")
+        {
+        }
+        type("Versions"; "VersionsQR")
+        {
+        }
+        type("ErrorCorrectionLevels"; "ErrorCorrectionLevelsQR")
+        {
+        }
+        type("OutputTypes"; "OutputTypesQR")
+        {
+        }
+    }
+
+    assembly(Microsoft.Dynamics.Nav.MX)
+    {
+        type(Microsoft.Dynamics.QRCode.ErrorCorrectionLevel; "QRCodeErrorCorrectionLevel")
+        {
+        }
+        type(Microsoft.Dynamics.Nav.MX.BarcodeProviders.IBarcodeProvider; "IBarcodeProvider")
+        {
+        }
+        type(Microsoft.Dynamics.Nav.MX.BarcodeProviders.QRCodeProvider; "QRCodeProvider")
+        {
+        }
+    }
+
+    assembly("netstandard")
+    {
+        type("System.Collections.Generic.Dictionary`2+KeyCollection"; "GenericDictionary2_KeyCollection")
+        {
+        }
+
+        type("System.String[]"; "StringArray")
+        {
+        }
         type("System.ArgumentNullException"; "ArgumentNullException")
         {
         }
@@ -1129,34 +1439,6 @@ dotnet
         {
         }
 
-        type("System.Collections.Generic.Dictionary`2"; "GenericDictionary2")
-        {
-        }
-
-        type("System.Collections.Generic.Dictionary`2+KeyCollection"; "GenericDictionary2_KeyCollection")
-        {
-        }
-
-        type("System.Collections.Generic.IEnumerable`1"; "GenericIEnumerable1")
-        {
-        }
-
-        type("System.Collections.Generic.IEnumerator`1"; "GenericIEnumerator1")
-        {
-        }
-
-        type("System.Collections.Generic.IReadOnlyList`1"; "GenericIReadOnlyList1")
-        {
-        }
-
-        type("System.Collections.Generic.KeyValuePair`2"; "GenericKeyValuePair2")
-        {
-        }
-
-        type("System.Collections.Generic.List`1"; "GenericList1")
-        {
-        }
-
         type("System.Collections.Hashtable"; "Hashtable")
         {
         }
@@ -1178,6 +1460,10 @@ dotnet
         }
 
         type("System.Collections.Queue"; "Queue")
+        {
+        }
+
+        type("System.Collections.Stack"; "Stack")
         {
         }
 
@@ -1337,10 +1623,6 @@ dotnet
         {
         }
 
-        type("System.Nullable`1"; "Nullable1")
-        {
-        }
-
         type("System.Object"; "Object")
         {
         }
@@ -1349,7 +1631,18 @@ dotnet
         {
         }
 
+        type(System.Security.Cryptography.SymmetricAlgorithm; "SymmetricAlgorithm")
+        {
+        }
+
+        type(System.Security.Cryptography.AsymmetricAlgorithm; "AsymmetricAlgorithm")
+        {
+        }
+
         type("System.Security.Cryptography.HashAlgorithm"; "HashAlgorithm")
+        {
+        }
+        type("System.Security.Cryptography.HashAlgorithmName"; "HashAlgorithmName")
         {
         }
 
@@ -1362,6 +1655,9 @@ dotnet
         }
 
         type("System.Security.Cryptography.RSACryptoServiceProvider"; "RSACryptoServiceProvider")
+        {
+        }
+        type("System.Security.Cryptography.DSACryptoServiceProvider"; "DSACryptoServiceProvider")
         {
         }
 
@@ -1409,10 +1705,6 @@ dotnet
         {
         }
 
-        type("System.Threading.Tasks.Task`1"; "Task1")
-        {
-        }
-
         type("System.Threading.Thread"; "Thread")
         {
         }
@@ -1436,54 +1728,22 @@ dotnet
         type("System.Version"; "Version")
         {
         }
-    }
 
-    assembly("Newtonsoft.Json")
-    {
-
-        type("Newtonsoft.Json.Formatting"; "Formatting")
+        type("System.Reflection.FieldInfo"; "FieldInfo")
         {
         }
 
-        type("Newtonsoft.Json.JsonConvert"; "JsonConvert")
+        type("System.Reflection.PropertyInfo"; "PropertyInfo")
         {
         }
 
-        type("Newtonsoft.Json.JsonTextReader"; "JsonTextReader")
+        type("System.Security.Cryptography.CryptoConfig"; "CryptoConfig")
         {
         }
 
-        type("Newtonsoft.Json.JsonTextWriter"; "JsonTextWriter")
+        type("System.Security.Cryptography.RSA"; "RSA")
         {
         }
-
-        type("Newtonsoft.Json.Linq.JArray"; "JArray")
-        {
-        }
-
-        type("Newtonsoft.Json.Linq.JObject"; "JObject")
-        {
-        }
-
-        type("Newtonsoft.Json.Linq.JProperty"; "JProperty")
-        {
-        }
-
-        type("Newtonsoft.Json.Linq.JToken"; "JToken")
-        {
-        }
-
-        type("Newtonsoft.Json.Linq.JValue"; "JValue")
-        {
-        }
-    }
-
-    assembly("System")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
         type("System.Collections.Specialized.NameValueCollection"; "NameValueCollection")
         {
         }
@@ -1495,11 +1755,11 @@ dotnet
         type("System.Diagnostics.FileVersionInfo"; "FileVersionInfo")
         {
         }
-
+#if not CLEAN17
         type("System.Diagnostics.Process"; "Process")
         {
         }
-
+#endif
         type("System.Diagnostics.Stopwatch"; "Stopwatch")
         {
         }
@@ -1544,6 +1804,14 @@ dotnet
         {
         }
 
+        type("System.Net.Mail.MailAddress"; "MailAddress")
+        {
+        }
+
+        type("System.Net.Mime.ContentType"; "HttpContentType")
+        {
+        }
+
         type("System.Net.NetworkCredential"; "NetworkCredential")
         {
         }
@@ -1573,22 +1841,6 @@ dotnet
         }
 
         type("System.Net.WebRequest"; "WebRequest")
-        {
-        }
-
-        type("System.Reflection.FieldInfo"; "FieldInfo")
-        {
-        }
-
-        type("System.Reflection.PropertyInfo"; "PropertyInfo")
-        {
-        }
-
-        type("System.Security.Cryptography.CryptoConfig"; "CryptoConfig")
-        {
-        }
-
-        type("System.Security.Cryptography.RSA"; "RSA")
         {
         }
 
@@ -1663,30 +1915,6 @@ dotnet
         type("System.Text.RegularExpressions.RegexOptions"; "RegexOptions")
         {
         }
-
-        type("System.Uri"; "Uri")
-        {
-        }
-
-        type("System.UriBuilder"; "UriBuilder")
-        {
-        }
-
-        type("System.UriKind"; "UriKind")
-        {
-        }
-
-        type("System.UriPartial"; "UriPartial")
-        {
-        }
-    }
-
-    assembly("System.Core")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
         type("System.IO.MemoryMappedFiles.MemoryMappedFile"; "MemoryMappedFile")
         {
         }
@@ -1694,14 +1922,6 @@ dotnet
         type("System.IO.MemoryMappedFiles.MemoryMappedViewStream"; "MemoryMappedViewStream")
         {
         }
-    }
-
-    assembly("System.Data")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
         type("System.Data.DataColumn"; "DataColumn")
         {
         }
@@ -1717,83 +1937,13 @@ dotnet
         type("System.Data.DataTable"; "DataTable")
         {
         }
-    }
-
-    assembly("System.Data.Entity.Design")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
-        type("System.Data.Entity.Design.PluralizationServices.PluralizationService"; "PluralizationService")
-        {
-        }
-    }
-
-    assembly("System.Drawing")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b03f5f7f11d50a3a';
-
-        type("System.Drawing.Bitmap"; "Bitmap")
-        {
-        }
-
         type("System.Drawing.Color"; "Color")
         {
         }
 
-        type("System.Drawing.ColorTranslator"; "ColorTranslator")
+        type(System.Drawing.Rectangle; "Rectangle")
         {
         }
-
-        type("System.Drawing.Graphics"; "Graphics")
-        {
-        }
-
-        type("System.Drawing.Image"; "Image")
-        {
-        }
-
-        type("System.Drawing.ImageFormatConverter"; "ImageFormatConverter")
-        {
-        }
-
-        type("System.Drawing.Imaging.ImageFormat"; "ImageFormat")
-        {
-        }
-
-        type("System.Drawing.Printing.PrinterSettings"; "PrinterSettings")
-        {
-        }
-
-        type("System.Drawing.Printing.PrinterSettings+StringCollection"; "PrinterSettings_StringCollection")
-        {
-        }
-
-        type("System.Drawing.SolidBrush"; "SolidBrush")
-        {
-        }
-    }
-
-    assembly("System.IdentityModel.Tokens.Jwt")
-    {
-
-        type("System.IdentityModel.Tokens.Jwt.JwtSecurityToken"; "JwtSecurityToken")
-        {
-        }
-
-        type("System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler"; "JwtSecurityTokenHandler")
-        {
-        }
-    }
-
-    assembly("System.IO.Compression.FileSystem")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
 
         type("System.IO.Compression.ZipFile"; "ZipFile")
         {
@@ -1802,34 +1952,7 @@ dotnet
         type("System.IO.Compression.ZipFileExtensions"; "ZipFileExtensions")
         {
         }
-    }
-
-    assembly("System.Management.Automation")
-    {
-        Version = '3.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("System.Management.Automation.ErrorRecord"; "ErrorRecord")
-        {
-        }
-
-        type("System.Management.Automation.PSCredential"; "PSCredential")
-        {
-        }
-    }
-
-    assembly("System.Net.Http")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b03f5f7f11d50a3a';
-
         type("System.Net.Http.Headers.HttpContentHeaders"; "HttpContentHeaders")
-        {
-        }
-
-        type("System.Net.Http.Headers.HttpHeaderValueCollection`1"; "HttpHeaderValueCollection1")
         {
         }
 
@@ -1860,14 +1983,6 @@ dotnet
         type("System.Net.Http.StreamContent"; "StreamContent")
         {
         }
-    }
-
-    assembly("System.Runtime.Serialization")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
         type("System.Xml.XmlDictionaryReader"; "XmlDictionaryReader")
         {
         }
@@ -1875,147 +1990,19 @@ dotnet
         type("System.Xml.XmlDictionaryReaderQuotas"; "XmlDictionaryReaderQuotas")
         {
         }
-    }
-
-    assembly("System.Security")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b03f5f7f11d50a3a';
-
-        type("System.Security.Cryptography.Xml.KeyInfo"; "KeyInfo")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.KeyInfoClause"; "KeyInfoClause")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.KeyInfoNode"; "KeyInfoNode")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.Reference"; "Reference")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.SignedXml"; "SignedXml")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.Transform"; "Transform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDecryptionTransform"; "XmlDecryptionTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigBase64Transform"; "XmlDsigBase64Transform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigC14NTransform"; "XmlDsigC14NTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigEnvelopedSignatureTransform"; "XmlDsigEnvelopedSignatureTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigExcC14NTransform"; "XmlDsigExcC14NTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigXPathTransform"; "XmlDsigXPathTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlDsigXsltTransform"; "XmlDsigXsltTransform")
-        {
-        }
-
-        type("System.Security.Cryptography.Xml.XmlLicenseTransform"; "XmlLicenseTransform")
-        {
-        }
-    }
-
-    assembly("System.ServiceModel")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
-        type("System.ServiceModel.FaultException"; "FaultException")
-        {
-        }
-    }
-
-    assembly("System.Web")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b03f5f7f11d50a3a';
-
         type("System.Web.HttpUtility"; "HttpUtility")
         {
         }
-
-        type("System.Web.MimeMapping"; "MimeMapping")
-        {
-        }
-    }
-
-    assembly("System.Windows.Forms")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
-
-        type("System.Resources.ResXDataNode"; "ResXDataNode")
-        {
-        }
-
-        type("System.Resources.ResXResourceReader"; "ResXResourceReader")
-        {
-        }
-
-        type("System.Resources.ResXResourceWriter"; "ResXResourceWriter")
-        {
-        }
-
-        type("System.Windows.Forms.DialogResult"; "DialogResult")
-        {
-        }
-
-        type("System.Windows.Forms.FolderBrowserDialog"; "FolderBrowserDialog")
-        {
-        }
-
-        type("System.Windows.Forms.OpenFileDialog"; "OpenFileDialog")
-        {
-        }
-
-        type("System.Windows.Forms.PrintDialog"; "PrintDialog")
-        {
-        }
-
-        type("System.Windows.Forms.SaveFileDialog"; "SaveFileDialog")
-        {
-        }
-    }
-
-    assembly("System.Xml")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
 
         type("System.Xml.DtdProcessing"; "DtdProcessing")
         {
         }
 
         type("System.Xml.Schema.ValidationEventArgs"; "ValidationEventArgs")
+        {
+        }
+
+        type("System.Xml.Schema.ValidationEventHandler"; "ValidationEventHandler")
         {
         }
 
@@ -2138,82 +2125,59 @@ dotnet
         type("System.Xml.Xsl.XsltArgumentList"; "XsltArgumentList")
         {
         }
-    }
-
-    assembly("System.Xml.Linq")
-    {
-        Version = '4.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'b77a5c561934e089';
 
         type("System.Xml.Linq.XDocument"; "XDocument")
         {
         }
-    }
 
-    assembly("MailKit")
-    {
-        Version = '2.2.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '4e064fe7c44a8f1b';
-
-        type("MailKit.Net.Smtp.SmtpClient"; "SmtpClient")
+        type("System.Collections.Generic.Dictionary`2"; "GenericDictionary2")
         {
         }
 
-        type("MailKit.ITransferProgress"; "ITransferProgress")
+        type("System.Collections.Generic.IEnumerable`1"; "GenericIEnumerable1")
         {
         }
 
-        type("MailKit.CommandException"; "CommandException")
+        type("System.Collections.Generic.IEnumerator`1"; "GenericIEnumerator1")
         {
         }
 
-        type("MailKit.Net.Smtp.SmtpCommandException"; "SmtpCommandException")
+        type("System.Collections.Generic.IReadOnlyList`1"; "GenericIReadOnlyList1")
         {
         }
 
-        type("MailKit.Security.SecureSocketOptions"; "SecureSocketOptions")
-        {
-        }
-    }
-
-    assembly("MimeKit")
-    {
-        Version = '2.2.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = 'bede1c8a46c66814';
-
-        type("MimeKit.BodyBuilder"; "MimeBodyBuilder")
+        type("System.Collections.Generic.KeyValuePair`2"; "GenericKeyValuePair2")
         {
         }
 
-        type("MimeKit.MimeMessage"; "MimeMessage")
+        type("System.Collections.Generic.List`1"; "GenericList1")
         {
         }
 
-        type("MimeKit.MailboxAddress"; "MimeMailboxAddress")
+        type("System.Nullable`1"; "Nullable1")
         {
         }
 
-        type("MimeKit.InternetAddressList"; "InternetAddressList")
+        type("System.Threading.Tasks.Task`1"; "Task1")
         {
         }
 
-        type("MimeKit.InternetAddress"; "InternetAddress")
+        type("System.Collections.Generic.SortedDictionary`2"; "GenericSortedDictionary2")
         {
         }
 
-        type("MimeKit.MimeEntity"; "MimeEntity")
+        type("System.Collections.Generic.HashSet`1"; "GenericHashSet1")
         {
         }
 
-        type("MimeKit.Utils.MimeUtils"; "MimeUtils")
+        type("System.Net.Http.Headers.HttpHeaderValueCollection`1"; "HttpHeaderValueCollection1")
         {
         }
 
-        type("MimeKit.ContentType"; "MimeContentType")
+        type("System.Activator"; "Activator")
         {
         }
     }
+
 }
+

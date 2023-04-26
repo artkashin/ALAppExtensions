@@ -6,6 +6,9 @@
 codeunit 9807 "Field Selection Impl."
 {
     Access = Internal;
+    Permissions = tabledata Field = r;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure Open(var "Field": Record "Field"): Boolean
     var

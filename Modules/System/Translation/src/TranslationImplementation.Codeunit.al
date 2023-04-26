@@ -6,9 +6,15 @@
 codeunit 3712 "Translation Implementation"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata Translation = rimd;
 
     var
         NoRecordIdErr: Label 'The variant passed is not a record.';
+        CannotTranslateTempRecErr: Label 'Translations cannot be added or retrieved for temporary records.';
+        NotAValidRecordForTranslationErr: Label 'Translations cannot be added for the record on table %1.', Comment = '%1 - Table number';
+        DifferentTableErr: Label 'The records cannot belong to different tables.';
 
     procedure Any(): Boolean
     var
@@ -54,8 +60,10 @@ codeunit 3712 "Translation Implementation"
         GetSystemIdFromVariant(RecVariant, SystemId, TableNo);
         Exists := Translation.Get(LanguageId, SystemId, FieldId);
         if Exists then begin
-            Translation.Value := Value;
-            Translation.Modify(true);
+            if Translation.Value <> Value then begin
+                Translation.Value := Value;
+                Translation.Modify(true);
+            end;
         end else begin
             Translation.Init();
             Translation."Language ID" := LanguageId;
@@ -82,14 +90,55 @@ codeunit 3712 "Translation Implementation"
         DeleteTranslations(RecVariant, Translation);
     end;
 
+    procedure Delete(TableID: Integer)
+    var
+        Translation: Record Translation;
+    begin
+        Translation.SetRange("Table ID", TableID);
+        Translation.DeleteAll(true);
+    end;
+
+    procedure Copy(FromRecVariant: Variant; ToRecVariant: Variant; FieldId: Integer)
+    var
+        Translation: Record Translation;
+        FromRecordRef: RecordRef;
+        ToRecordRef: RecordRef;
+    begin
+        GetRecordRefFromVariant(FromRecVariant, FromRecordRef);
+        GetRecordRefFromVariant(ToRecVariant, ToRecordRef);
+        if FromRecordRef.Number() <> ToRecordRef.Number() then
+            Error(DifferentTableErr);
+        Translation.SetRange("System Id", GetSystemIdFromRecordRef(FromRecordRef));
+        Translation.SetRange("Table ID", FromRecordRef.Number());
+        if FieldId <> 0 then
+            Translation.SetRange("Field ID", FieldId);
+        if Translation.FindSet() then
+            repeat
+                Set(ToRecVariant, Translation."Field ID", Translation."Language ID", Translation.Value);
+            until Translation.Next() = 0;
+    end;
+
+    procedure Copy(FromRecVariant: Variant; FromFieldId: Integer; ToRecVariant: Variant; ToFieldId: Integer)
+    var
+        Translation: Record Translation;
+        FromRecordRef: RecordRef;
+    begin
+        GetRecordRefFromVariant(FromRecVariant, FromRecordRef);
+        Translation.SetRange("System Id", GetSystemIdFromRecordRef(FromRecordRef));
+        Translation.SetRange("Field ID", FromFieldId);
+        if Translation.FindSet() then
+            repeat
+                Set(ToRecVariant, ToFieldId, Translation."Language ID", Translation.Value);
+            until Translation.Next() = 0;
+    end;
+
     local procedure DeleteTranslations(RecVariant: Variant; var TranslationWithFilters: Record Translation)
     var
         RecordRef: RecordRef;
     begin
         GetRecordRefFromVariant(RecVariant, RecordRef);
-        if RecordRef.IsTemporary() then
-            exit;
 
+        TranslationWithFilters.SetRange("Table ID", RecordRef.Number());
         TranslationWithFilters.SetRange("System ID", GetSystemIdFromRecordRef(RecordRef));
         TranslationWithFilters.DeleteAll(true);
     end;
@@ -104,6 +153,7 @@ codeunit 3712 "Translation Implementation"
         GetSystemIdFromVariant(RecVariant, SystemID, TableNo);
         Translation.SetRange("System ID", SystemID);
         Translation.SetRange("Field ID", FieldId);
+        TranslationPage.SetTableId(TableNo);
         TranslationPage.SetCaption(GetRecordIdCaptionFromVariant(RecVariant));
         TranslationPage.SetTableView(Translation);
         TranslationPage.Run();
@@ -125,7 +175,7 @@ codeunit 3712 "Translation Implementation"
     begin
         GetRecordRefFromVariant(RecVariant, RecordRef);
         RecordId := RecordRef.RecordId();
-        exit(Format(RecordId));
+        exit(Format(RecordId, 0, 1));
     end;
 
     local procedure GetSystemIdFromVariant(RecVariant: Variant; var SystemId: Guid; var TableNo: Integer)
@@ -146,6 +196,10 @@ codeunit 3712 "Translation Implementation"
     begin
         if RecVariant.IsRecord() then begin
             RecordRef.GetTable(RecVariant);
+            if RecordRef.IsTemporary() then
+                Error(CannotTranslateTempRecErr);
+            if RecordRef.Number() = 0 then
+                Error(NotAValidRecordForTranslationErr, 0);
             exit;
         end;
 
@@ -157,4 +211,3 @@ codeunit 3712 "Translation Implementation"
         Error(NoRecordIdErr);
     end;
 }
-

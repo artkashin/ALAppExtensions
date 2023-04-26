@@ -1,6 +1,38 @@
 Provides a way to access information about the subscribed SKUs and the corresponding service plans. It uses two collections: one that stores the subscribed SKUs and the other that stores the corresponding service plans of the SKU that we currently point to in the collection. ResetSubscribedSKU and ResetServicePlans will set the enumerators to the initial position. Use NextSubscribedSKU to advance the enumerator to the next subscribed SKU in the collection and NextServicePlan to advance to the next service plan of the SKU that the enumerator currently points to. 
 You can specify whether to include unknown plans by using the SetIncludeUnknownPlans function.
 
+Usage examples:
+```
+procedure GetSKUs()
+var
+    SKU: Record "YOUR SKU TABLE";
+    AzureADLic: codeunit "Azure AD Licensing";
+begin
+    while AzureADLic.NextSubscribedSKU() do begin
+        SKU.id := AzureADLic.SubscribedSKUId();
+        SKU.PartNumber := AzureADLic.SubscribedSKUPartNumber();
+        SKU.PrepaidUnitsInEnabledState := AzureADLic.SubscribedSKUPrepaidUnitsInEnabledState();
+        SKU.ConsumedUnits := AzureADLic.SubscribedSKUConsumedUnits();
+        SKU.insert();
+    end;
+end;
+procedure GetPlansBySKUs()
+var
+    Plan: Record "YOUR PLAN TABLE";
+    AzureADLic: codeunit "Azure AD Licensing";
+begin
+    while AzureADLic.NextSubscribedSKU() do begin
+        AzureADLic.ResetServicePlans();
+        while AzureADLic.NextServicePlan() do begin
+            Plan.ServicePlanId := AzureADLic.ServicePlanId();
+            Plan.ServicePlanName := AzureADLic.ServicePlanName();
+            Plan.SKUId := AzureADLic.SubscribedSKUId();
+            Plan.insert();
+        end;
+    end;
+end;
+```
+
 # Public Objects
 ## Azure AD Licensing (Codeunit 458)
 
@@ -16,8 +48,13 @@ You can specify whether to include unknown plans by using the SetIncludeUnknownP
 
 #### Syntax
 ```
-procedure ResetSubscribedSKU()
+[NonDebuggable]
+procedure ResetSubscribedSKU(): Boolean
 ```
+#### Return Value
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
+
+ True if the enumerator was successfully reset and otherwise false.
 ### NextSubscribedSKU (Method) <a name="NextSubscribedSKU"></a> 
 
  Advances the enumerator to the next subscribed SKU in the collection. If only known service plans should be included, it advances to the next SKU known in Business Central.
@@ -25,10 +62,11 @@ procedure ResetSubscribedSKU()
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure NextSubscribedSKU(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
  True if the enumerator was successfully advanced to the next SKU; false if the enumerator has passed the end of the collection.
 ### SubscribedSKUCapabilityStatus (Method) <a name="SubscribedSKUCapabilityStatus"></a> 
@@ -38,10 +76,11 @@ procedure NextSubscribedSKU(): Boolean
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUCapabilityStatus(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The capability status of the subscribed SKU, or an empty string if the subscribed SKUs enumerator was not initialized.
 ### SubscribedSKUConsumedUnits (Method) <a name="SubscribedSKUConsumedUnits"></a> 
@@ -51,10 +90,11 @@ procedure SubscribedSKUCapabilityStatus(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUConsumedUnits(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
  The number of licenses that are assigned to the subscribed SKU, or 0 if the subscribed SKUs enumerator was not initialized.
 ### SubscribedSKUObjectId (Method) <a name="SubscribedSKUObjectId"></a> 
@@ -64,10 +104,11 @@ procedure SubscribedSKUConsumedUnits(): Integer
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUObjectId(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The object ID of the current SKU. If the subscribed SKUs enumerator was not initialized, it will return an empty string.
 ### SubscribedSKUPrepaidUnitsInEnabledState (Method) <a name="SubscribedSKUPrepaidUnitsInEnabledState"></a> 
@@ -77,10 +118,11 @@ procedure SubscribedSKUObjectId(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUPrepaidUnitsInEnabledState(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
  The number of prepaid licenses that are enabled for the subscribed SKU. If the subscribed SKUs enumerator was not initialized it will return 0.
 ### SubscribedSKUPrepaidUnitsInSuspendedState (Method) <a name="SubscribedSKUPrepaidUnitsInSuspendedState"></a> 
@@ -90,10 +132,11 @@ procedure SubscribedSKUPrepaidUnitsInEnabledState(): Integer
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUPrepaidUnitsInSuspendedState(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
 The number of prepaid licenses that are suspended for the subscribed SKU. If the subscribed SKUs enumerator was not initialized it will return 0.
 ### SubscribedSKUPrepaidUnitsInWarningState (Method) <a name="SubscribedSKUPrepaidUnitsInWarningState"></a> 
@@ -103,10 +146,11 @@ The number of prepaid licenses that are suspended for the subscribed SKU. If the
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUPrepaidUnitsInWarningState(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
  The number of prepaid licenses that are in warning status for the subscribed SKU. If the subscribed SKUs enumerator was not initialized it will return 0.
 ### SubscribedSKUId (Method) <a name="SubscribedSKUId"></a> 
@@ -116,10 +160,11 @@ procedure SubscribedSKUPrepaidUnitsInWarningState(): Integer
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUId(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The unique identifier (GUID) of the subscribed SKU; empty string if the subscribed SKUs enumerator was not initialized.
 ### SubscribedSKUPartNumber (Method) <a name="SubscribedSKUPartNumber"></a> 
@@ -129,10 +174,11 @@ procedure SubscribedSKUId(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure SubscribedSKUPartNumber(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The part number of the subscribed SKU or an empty string if the subscribed SKUs enumerator was not initialized.
 ### ResetServicePlans (Method) <a name="ResetServicePlans"></a> 
@@ -142,6 +188,7 @@ procedure SubscribedSKUPartNumber(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure ResetServicePlans()
 ```
 ### NextServicePlan (Method) <a name="NextServicePlan"></a> 
@@ -151,10 +198,11 @@ procedure ResetServicePlans()
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure NextServicePlan(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
  True if the enumerator was successfully advanced to the next service plan; false if the enumerator has passed the end of the collection or it was not initialized.
 ### ServicePlanCapabilityStatus (Method) <a name="ServicePlanCapabilityStatus"></a> 
@@ -164,10 +212,11 @@ procedure NextServicePlan(): Boolean
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure ServicePlanCapabilityStatus(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The capability status of the service plan, or an empty string if the service plan enumerator was not initialized.
 ### ServicePlanId (Method) <a name="ServicePlanId"></a> 
@@ -177,10 +226,11 @@ procedure ServicePlanCapabilityStatus(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure ServicePlanId(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The ID of the service plan, or an empty string if the service plan enumerator was not initialized.
 ### ServicePlanName (Method) <a name="ServicePlanName"></a> 
@@ -190,10 +240,11 @@ procedure ServicePlanId(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure ServicePlanName(): Text
 ```
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
  The name of the service plan, or an empty string if the service plan enumerator was not initialized.
 ### IncludeUnknownPlans (Method) <a name="IncludeUnknownPlans"></a> 
@@ -203,10 +254,11 @@ procedure ServicePlanName(): Text
 
 #### Syntax
 ```
+[NonDebuggable]
 procedure IncludeUnknownPlans(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
  True if the unknown service plans should be included. Otherwise, false.
 ### SetIncludeUnknownPlans (Method) <a name="SetIncludeUnknownPlans"></a> 
@@ -216,26 +268,10 @@ procedure IncludeUnknownPlans(): Boolean
 
 #### Syntax
 ```
-[Scope('OnPrem')]
+[NonDebuggable]
 procedure SetIncludeUnknownPlans(IncludeUnknownPlans: Boolean)
 ```
 #### Parameters
-*IncludeUnknownPlans ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
+*IncludeUnknownPlans ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
 
 The value to be set to the flag.
-
-### SetTestInProgress (Method) <a name="SetTestInProgress"></a> 
-
- Sets a flag that is used to determine whether a test is in progress or not.
- 
-
-#### Syntax
-```
-[Scope('OnPrem')]
-procedure SetTestInProgress(TestInProgress: Boolean)
-```
-#### Parameters
-*TestInProgress ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
-
-The value to be set to the flag.
-

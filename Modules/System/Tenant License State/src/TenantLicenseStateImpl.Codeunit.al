@@ -6,6 +6,9 @@
 codeunit 2301 "Tenant License State Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Tenant License State" = r;
 
     var
         TenantLicenseStatePeriodProvider: DotNet TenantLicenseStatePeriodProvider;
@@ -15,7 +18,7 @@ codeunit 2301 "Tenant License State Impl."
     var
         TenantLicenseStateValue: Integer;
     begin
-        TenantLicenseStateValue := TenantLicenseState;
+        TenantLicenseStateValue := TenantLicenseState.AsInteger();
         exit(TenantLicenseStatePeriodProvider.ALGetPeriod(TenantLicenseStateValue));
     end;
 
@@ -110,8 +113,8 @@ codeunit 2301 "Tenant License State Impl."
         TenantLicenseState: Record "Tenant License State";
     begin
         if TenantLicenseState.FindLast() then
-            exit(TenantLicenseState.State);
-        exit(TenantLicenseState.State::Evaluation);
+            exit("Tenant License State".FromInteger(TenantLicenseState.State));
+        exit("Tenant License State".FromInteger(TenantLicenseState.State::Evaluation));
     end;
 
     local procedure GetPreviousLicenseState(CurrentTenantLicenseState: Enum "Tenant License State"): Enum "Tenant License State"
@@ -125,12 +128,18 @@ codeunit 2301 "Tenant License State Impl."
             TenantLicenseState.SetAscending("Start Date", false);
             if TenantLicenseState.FindSet() then
                 while TenantLicenseState.Next() <> 0 do begin
-                    PreviousTenantLicenseState := TenantLicenseState.State;
-                    if PreviousTenantLicenseState in [TenantLicenseState.State::Trial, TenantLicenseState.State::Paid] then
+                    PreviousTenantLicenseState := "Tenant License State".FromInteger(TenantLicenseState.State);
+                    if PreviousTenantLicenseState in ["Tenant License State"::Trial, "Tenant License State"::Paid] then
                         exit(PreviousTenantLicenseState);
                 end;
         end;
 
         exit(PreviousTenantLicenseState);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Telemetry Custom Dimensions", OnAddCommonCustomDimensions, '', true, true)]
+    local procedure OnAddCommonCustomDimensions(var Sender: Codeunit "Telemetry Custom Dimensions")
+    begin
+        Sender.AddCommonCustomDimension('TenantLicenseState', Format(GetLicenseState()));
     end;
 }

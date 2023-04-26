@@ -25,15 +25,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.Apps.ALPackageDeploymentSchedule"; "ALPackageDeploymentSchedule")
         {
         }
-
-        type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALFunctions"; "NavDesignerALFunctions")
-        {
-        }
     }
 
     assembly("Microsoft.Dynamics.Nav.ClientExtensions")
     {
-        Version = '15.0.0.0';
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
@@ -42,4 +37,13 @@ dotnet
         }
     }
 
+    assembly("Microsoft.Dynamics.Nav.Types")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.Types.NavAppSyncMode"; "ALNavAppSyncMode")
+        {
+        }
+    }
 }

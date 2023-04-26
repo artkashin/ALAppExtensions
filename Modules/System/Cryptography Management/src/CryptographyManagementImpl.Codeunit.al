@@ -6,6 +6,8 @@
 codeunit 1279 "Cryptography Management Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         CryptographyManagement: Codeunit "Cryptography Management";
@@ -23,7 +25,7 @@ codeunit 1279 "Cryptography Management Impl."
         EncryptionCheckFailErr: Label 'Encryption is either not enabled or the encryption key cannot be found.';
         EncryptionIsNotActivatedQst: Label 'Data encryption is not activated. It is recommended that you encrypt data. \Do you want to open the Data Encryption Management window?';
 
-    procedure Encrypt(InputString: Text): Text
+    procedure Encrypt(InputString: Text[215]): Text
     begin
         AssertEncryptionPossible();
         if InputString = '' then
@@ -245,8 +247,6 @@ codeunit 1279 "Cryptography Management Impl."
     var
         Encoding: DotNet Encoding;
     begin
-        if InputString = '' then
-            exit(false);
         if not TryGenerateHash(HashBytes, Encoding.UTF8().GetBytes(InputString), Format(HashAlgorithmType)) then
             Error(GetLastErrorText());
         exit(true);
@@ -334,19 +334,231 @@ codeunit 1279 "Cryptography Management Impl."
         exit(Convert.ToBase64String(HashBytes));
     end;
 
-    procedure GenerateHash(InStr: InStream; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    procedure GenerateHash(DataInStream: InStream; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     var
         MemoryStream: DotNet MemoryStream;
         HashBytes: DotNet Array;
     begin
-        if InStr.EOS() then
+        if DataInStream.EOS() then
             exit('');
         MemoryStream := MemoryStream.MemoryStream();
-        CopyStream(MemoryStream, InStr);
+        CopyStream(MemoryStream, DataInStream);
         if not TryGenerateHash(HashBytes, MemoryStream.ToArray(), Format(HashAlgorithmType)) then
             Error(GetLastErrorText());
         exit(ConvertByteHashToString(HashBytes));
     end;
+
+    procedure GenerateBase64KeyedHash(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    var
+        HashBytes: DotNet Array;
+        Convert: DotNet Convert;
+    begin
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key), HashAlgorithmType) then
+            exit('');
+        exit(ConvertByteHashToString(HashBytes));
+    end;
+
+    procedure SignData(InputString: Text; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit;
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
+    end;
+
+    procedure SignData(InputString: Text; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        SignData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
+    end;
+
+#if not CLEAN19
+#pragma warning disable AL0432
+    procedure SignData(InputString: Text; var SignatureKey: Record "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit;
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        SignData(DataInStream, SignatureKey, HashAlgorithm, SignatureOutStream);
+    end;
+#pragma warning restore
+#endif
+
+#if not CLEAN18
+    procedure SignData(InputString: Text; KeyStream: InStream; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512; SignatureOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit;
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        SignData(DataInStream, KeyStream, HashAlgorithmType, SignatureOutStream);
+    end;
+#endif
+
+    procedure SignData(DataInStream: InStream; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    var
+        ISignatureAlgorithm: Interface SignatureAlgorithm;
+    begin
+        if DataInStream.EOS() then
+            exit;
+        ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
+        ISignatureAlgorithm.FromXmlString(XmlString);
+        ISignatureAlgorithm.SignData(DataInStream, HashAlgorithm, SignatureOutStream);
+    end;
+
+    procedure SignData(DataInStream: InStream; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        SignData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
+    end;
+
+#if not CLEAN19
+#pragma warning disable AL0432
+    procedure SignData(DataInStream: InStream; var SignatureKey: Record "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    var
+        ISignatureAlgorithm: Interface SignatureAlgorithm;
+    begin
+        if DataInStream.EOS() then
+            exit;
+        ISignatureAlgorithm := SignatureKey."Signature Algorithm";
+        if SignatureKey."Key Value Type" = SignatureKey."Key Value Type"::XmlString then
+            ISignatureAlgorithm.FromXmlString(SignatureKey.ToXmlString());
+        ISignatureAlgorithm.SignData(DataInStream, HashAlgorithm, SignatureOutStream);
+    end;
+#pragma warning restore
+#endif
+
+#if not CLEAN18
+#pragma warning disable AL0432
+    procedure SignData(DataInStream: InStream; KeyStream: InStream; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512; SignatureOutStream: OutStream)
+    var
+        SignatureKey: Record "Signature Key";
+    begin
+        if DataInStream.EOS() then
+            exit;
+        SignatureKey."Signature Algorithm" := SignatureKey."Signature Algorithm"::RSA;
+        SignatureKey."Key Value Type" := SignatureKey."Key Value Type"::XmlString;
+        SignatureKey.WriteKeyValue(KeyStream);
+        SignData(DataInStream, SignatureKey, "Hash Algorithm".FromInteger(HashAlgorithmType), SignatureOutStream);
+    end;
+#pragma warning restore
+#endif
+
+    procedure VerifyData(InputString: Text; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit(false);
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        exit(VerifyData(DataInStream, XmlString, HashAlgorithm, SignatureInStream));
+    end;
+
+    procedure VerifyData(InputString: Text; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    begin
+        exit(VerifyData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureInStream));
+    end;
+
+#if not CLEAN19
+#pragma warning disable AL0432
+    procedure VerifyData(InputString: Text; var SignatureKey: Record "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit(false);
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        exit(VerifyData(DataInStream, SignatureKey, HashAlgorithm, SignatureInStream));
+    end;
+#pragma warning restore
+#endif
+
+#if not CLEAN18
+    procedure VerifyData(InputString: Text; "Key": Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512; SignatureInStream: InStream): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit(false);
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        exit(VerifyData(DataInStream, "Key", HashAlgorithmType, SignatureInStream));
+    end;
+#endif
+
+    procedure VerifyData(DataInStream: InStream; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    var
+        ISignatureAlgorithm: Interface SignatureAlgorithm;
+    begin
+        if DataInStream.EOS() then
+            exit(false);
+        ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
+        ISignatureAlgorithm.FromXmlString(XmlString);
+        exit(ISignatureAlgorithm.VerifyData(DataInStream, HashAlgorithm, SignatureInStream));
+    end;
+
+    procedure VerifyData(DataInStream: InStream; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    begin
+        exit(VerifyData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureInStream));
+    end;
+
+#if not CLEAN19
+#pragma warning disable AL0432
+    procedure VerifyData(DataInStream: InStream; var SignatureKey: Record "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    var
+        ISignatureAlgorithm: Interface SignatureAlgorithm;
+    begin
+        if DataInStream.EOS() then
+            exit(false);
+        ISignatureAlgorithm := SignatureKey."Signature Algorithm";
+        if SignatureKey."Key Value Type" = SignatureKey."Key Value Type"::XmlString then
+            ISignatureAlgorithm.FromXmlString(SignatureKey.ToXmlString());
+        exit(ISignatureAlgorithm.VerifyData(DataInStream, HashAlgorithm, SignatureInStream));
+    end;
+#pragma warning restore
+#endif
+
+#if not CLEAN18
+#pragma warning disable AL0432
+    procedure VerifyData(DataInStream: InStream; "Key": Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512; SignatureInStream: InStream): Boolean
+    var
+        SignatureKey: Record "Signature Key";
+    begin
+        if DataInStream.EOS() then
+            exit(false);
+        SignatureKey."Signature Algorithm" := SignatureKey."Signature Algorithm"::RSA;
+        SignatureKey."Key Value Type" := SignatureKey."Key Value Type"::XmlString;
+        SignatureKey.FromXmlString("Key");
+        exit(VerifyData(DataInStream, SignatureKey, "Hash Algorithm".FromInteger(HashAlgorithmType), SignatureInStream));
+    end;
+#pragma warning restore
+#endif
 
     procedure InitRijndaelProvider()
     begin
@@ -360,7 +572,7 @@ codeunit 1279 "Cryptography Management Impl."
         Encoding: DotNet Encoding;
     begin
         InitRijndaelProvider();
-        RijndaelProvider."Key" := Encoding.Default().GetBytes(EncryptionKey);
+        RijndaelProvider."Key" := Encoding.GetEncoding(0).GetBytes(EncryptionKey);
     end;
 
     procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer)
@@ -422,10 +634,12 @@ codeunit 1279 "Cryptography Management Impl."
 
     procedure GetLegalKeySizeValues(var MinSize: Integer; var MaxSize: Integer; var SkipSize: Integer)
     var
+        KeySizesArray: DotNet "Cryptography.KeySizesArray";
         KeySizes: DotNet "Cryptography.KeySizes";
     begin
         Construct();
-        KeySizes := RijndaelProvider.LegalKeySizes().GetValue(0);
+        KeySizesArray := RijndaelProvider.LegalKeySizes();
+        KeySizes := KeySizesArray.GetValue(0);
         MinSize := KeySizes.MinSize();
         MaxSize := KeySizes.MaxSize();
         SkipSize := KeySizes.SkipSize();
@@ -433,10 +647,12 @@ codeunit 1279 "Cryptography Management Impl."
 
     procedure GetLegalBlockSizeValues(var MinSize: Integer; var MaxSize: Integer; var SkipSize: Integer)
     var
+        KeySizesArray: DotNet "Cryptography.KeySizesArray";
         KeySizes: DotNet "Cryptography.KeySizes";
     begin
         Construct();
-        KeySizes := RijndaelProvider.LegalBlockSizes().GetValue(0);
+        KeySizesArray := RijndaelProvider.LegalBlockSizes();
+        KeySizes := KeySizesArray.GetValue(0);
         MinSize := KeySizes.MinSize();
         MaxSize := KeySizes.MaxSize();
         SkipSize := KeySizes.SkipSize();
@@ -485,7 +701,9 @@ codeunit 1279 "Cryptography Management Impl."
         DecMemoryStream := DecMemoryStream.MemoryStream(Convert.FromBase64String(EncryptedText));
         DecCryptoStream := DecCryptoStream.CryptoStream(DecMemoryStream, Decryptor, CryptoStreamMode.Read);
         DecStreamReader := DecStreamReader.StreamReader(DecCryptoStream);
+#pragma warning disable AA0205
         PlainText := DelChr(DecStreamReader.ReadToEnd(), '>', NullChar);
+#pragma warning restore
         DecStreamReader.Close();
         DecCryptoStream.Close();
         DecMemoryStream.Close();
@@ -495,5 +713,25 @@ codeunit 1279 "Cryptography Management Impl."
     begin
         if IsNull(RijndaelProvider) then
             InitRijndaelProvider();
+    end;
+
+    procedure HashRfc2898DeriveBytes(InputString: Text; Salt: Text; NoOfBytes: Integer; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text;
+    var
+        ByteArray: DotNet Array;
+        Convert: DotNet Convert;
+        Encoding: DotNet Encoding;
+        Rfc2898DeriveBytes: DotNet Rfc2898DeriveBytes;
+    begin
+        if Salt = '' then
+            exit;
+
+        //Implement password-based key derivation functionality, PBKDF2, by using a pseudo-random number generator based on HMACSHA1.
+        Rfc2898DeriveBytes := Rfc2898DeriveBytes.Rfc2898DeriveBytes(InputString, Encoding.ASCII.GetBytes(Salt));
+
+        //Return a Base64 encoded string of the hash of the first X bytes (X = NoOfBytes) returned from the generator.
+        if not TryGenerateHash(ByteArray, Rfc2898DeriveBytes.GetBytes(NoOfBytes), Format(HashAlgorithmType)) then
+            Error(GetLastErrorText());
+
+        exit(Convert.ToBase64String(ByteArray));
     end;
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,27 +12,36 @@
 /// and needs to be parsed for the key information we need to perform an
 /// install.
 /// At current the key pieces of that object look like this:
-/// "msgType":"<type name string>",
+/// "msgType":"&lt;type name string&gt;",
 /// "data":
-///    "applicationId":"<string identifier for selected extension>",
-///    "telemetryUrl":"<url>",
+///    "applicationId":"&lt;string identifier for selected extension&gt;",
+///    "telemetryUrl":"&lt;url&gt;",
 /// </summary>
 codeunit 2501 "Extension Marketplace"
 {
     Access = Internal;
+    Permissions = tabledata "Published Application" = r,
+                  tabledata "Extension Pending Setup" = rimd;
 
     var
         HttpWebRequest: DotNet HttpWebRequest;
         GlobalPropertyValue: Text;
         ParseFailureErr: Label 'Failed to extract ''%1'' property from JSON object.', Comment = 'JSON parsing error. %1=target property name';
-        TelemetryBodyTxt: Label '{"acquisitionResult":"%1", "detail":"%2"}', Comment = '%1=AppSource operation result option, %2=details describing the context or reason for the result';
+        TelemetryBodyTxt: Label '{"acquisitionResult":"%1", "detail":"%2"}', Comment = '%1=AppSource operation result option, %2=details describing the context or reason for the result', Locked = true;
         ParseApplicationIdErr: Label 'Failed to extract ''%1'' token from Application Id.', Comment = '%1=Name of token that we expected   ';
         Token: Option PUBID,AID,PACKID,PAPPID;
         MarketplaceDisabledSecretTxt: Label 'extmgmt-marketplace-disable', Locked = true;
         MarketPlaceSuccInstallTxt: Label 'The extension was successfully installed.';
         MarketPlaceUnsuccInstallTxt: Label 'The market place extension installation has failed with the result ''%1''. Error message: ''%2''', Comment = '%1 - OperationResult parameter value, %2 - Error message';
         AlreadyInstalledMsg: Label 'The extension %1 is already installed.', Comment = '%1=name of app';
+        AppsourceTxt: Label 'https://appsource.microsoft.com', Locked = true;
+        EmbedRelativeTxt: Label '/embed/en-us/marketplace?product=dynamics-365-business-central', Locked = true;
+        ExtensionNotFoundErr: Label 'Selected extension could not be installed because a valid App Id or package ID is not passed.', Comment = 'Error message for trying to install an extension where a valid id is not passed;';
+        TelemetryExtensionNotFoundErr: Label 'Selected extension could not be installed because a valid App Id or package ID is not passed. Application ID : %1.', Comment = 'Telemetry error message for trying to install an extension a valid id is not passed; %1 is the applicaiton id recieved from appsource.';
+        MissingAppIdErr: Label 'Selected extension could not be installed because the extension is not published and a valid App Id is not passed. Application ID : %1.', Comment = 'Telemetry error message for trying to install an extension a valid id is not passed; %1 is the applicaiton id recieved from appsource.';
+        TelemetryTok: Label 'ExtensionManagementTelemetryCategoryTok', Locked = true;
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
+        AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
 
     local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
     begin
@@ -94,22 +103,22 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     [TryFunction]
-    local procedure TryMakeMarketplaceTelemetryCallback(ResponseURL: Text; OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut)
+    local procedure TryMakeMarketplaceTelemetryCallback(ResponseURL: Text; InstallationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut)
     var
         TempBlob: Codeunit "Temp Blob";
         HttpWebResponse: DotNet HttpWebResponse;
-        ResponseStr: InStream;
+        ResponseInStream: InStream;
     begin
         InitializeHTTPRequest(ResponseUrl);
         HttpWebRequest.Accept := '*/*';
         HttpWebRequest.ContentType := 'application/json';
         HttpWebRequest.Method := 'POST';
-        AddBodyAsText(Format(OperationResult));
-        TempBlob.CreateInStream(ResponseStr);
+        AddBodyAsText(Format(InstallationResult));
+        TempBlob.CreateInStream(ResponseInStream);
 
         ClearLastError();
         HttpWebResponse := HttpWebRequest.GetResponse();
-        HttpWebResponse.GetResponseStream().CopyTo(ResponseStr);
+        HttpWebResponse.GetResponseStream().CopyTo(ResponseInStream);
     end;
 
     [TryFunction]
@@ -181,24 +190,27 @@ codeunit 2501 "Extension Marketplace"
         exit(NullGuid);
     end;
 
-    procedure MakeMarketplaceTelemetryCallback(ResponseURL: Text; OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut)
+    procedure MakeMarketplaceTelemetryCallback(ResponseURL: Text; InstallationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut)
     begin
-        if not TryMakeMarketplaceTelemetryCallback(ResponseURL, OperationResult) then
-            if OperationResult = OperationResult::Successful then
-                SendTraceTag('00008LZ', 'Extensions', VERBOSITY::Normal, MarketPlaceSuccInstallTxt)
+        if not TryMakeMarketplaceTelemetryCallback(ResponseURL, InstallationResult) then
+            if InstallationResult = OperationResult::Successful then
+                Session.LogMessage('00008LZ', MarketPlaceSuccInstallTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions')
             else
-                SendTraceTag('00008M0', 'AL Extensions', VERBOSITY::Warning,
-                  StrSubstNo(MarketPlaceUnsuccInstallTxt, OperationResult, GetLastErrorText()));
+                Session.LogMessage('00008M0', StrSubstNo(MarketPlaceUnsuccInstallTxt, InstallationResult, GetLastErrorText()), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'AL Extensions');
     end;
 
     procedure InstallMarketplaceExtension(ApplicationId: Guid; ResponseURL: Text; lcid: Integer)
     var
-        NavAppTable: Record "NAV App";
+        PublishedApplication: Record "Published Application";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
     begin
+        if IsNullGuid(ApplicationId) then
+            Error(TelemetryExtensionNotFoundErr, ApplicationId);
 
-        if not NavAppTable.Get(ExtensionOperationImpl.GetLatestVersionPackageIdByAppId(ApplicationId)) then begin
+        PublishedApplication.SetRange("Package ID", ExtensionOperationImpl.GetLatestVersionPackageIdByAppId(ApplicationId));
+        PublishedApplication.SetRange("Tenant Visible", true);
+        if not PublishedApplication.FindFirst() then begin
             // If the extension is not found, send the request to the regional service.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true);
             exit;
@@ -206,16 +218,103 @@ codeunit 2501 "Extension Marketplace"
 
         // Check if the extension is already installed
         if ExtensionInstallationImpl.IsInstalledByAppId(ApplicationId) then begin
-            Message(StrSubstNo(AlreadyInstalledMsg, NavAppTable.Name));
+            Message(StrSubstNo(AlreadyInstalledMsg, PublishedApplication.Name));
             exit;
         end;
 
         // If it is a first party extension, install it locally
-        if IsFirstPartyExtension(NavAppTable) then
-            InstallApp(NavAppTable."Package ID", ResponseURL, lcid)
+        if IsFirstPartyExtension(PublishedApplication) then
+            InstallApp(PublishedApplication."Package ID", PublishedApplication.ID, ResponseURL, lcid)
         else
             // If the extension is found and it's from a third party, then send the request to regional service.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true);
+    end;
+
+    [TryFunction]
+    PROCEDURE InstallAppsourceExtension(ApplicationID: Text; TelemetryURL: Text);
+    VAR
+        PublishedApplication: Record "Published Application";
+        ExtensionInstallation: Page "Extension Installation";
+        AppId: GUID;
+        PackageID: GUID;
+    BEGIN
+        AppId := MapMarketplaceIdToAppId(ApplicationID);
+        if not IsNullGuid(AppId) then begin
+            PublishedApplication.SETFILTER(ID, '%1', AppId);
+            PublishedApplication.ID := AppId;
+        end else begin
+            PackageID := MapMarketplaceIdToPackageId(ApplicationID);
+            if IsNullGuid(PackageID) then begin
+                Session.LogMessage('0088AQQ', StrSubstNo(TelemetryExtensionNotFoundErr, ApplicationID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
+                ERROR(ExtensionNotFoundErr);
+            end;
+
+            PublishedApplication.SETFILTER("Package ID", '%1', PackageID);
+            if PublishedApplication.IsEmpty then begin
+                Session.LogMessage('0088BQQ', StrSubstNo(MissingAppIdErr, ApplicationID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
+                ERROR(ExtensionNotFoundErr);
+            end;
+
+            PublishedApplication."Package ID" := PackageID;
+        end;
+
+        PublishedApplication.responseUrl := CopyStr(TelemetryUrl, 1, MaxStrLen(PublishedApplication.responseUrl));
+        ExtensionInstallation.SetRecord(PublishedApplication);
+        ExtensionInstallation.RunModal();
+    end;
+
+    [TryFunction]
+    procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
+    var
+        PublishedApplication: Record "Published Application";
+        ExtensionInstallation: Page "Extension Installation";
+    begin
+        if IsNullGuid(AppId) then begin
+            Session.LogMessage('0000I4S', StrSubstNo(MissingAppIdErr, AppId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
+            Error(ExtensionNotFoundErr);
+        end;
+        PublishedApplication.SetRange(ID, AppId);
+        PublishedApplication.ID := AppId;
+        PublishedApplication.responseUrl := CopyStr(TelemetryUrl, 1, MaxStrLen(PublishedApplication.responseUrl));
+        ExtensionInstallation.SetRecord(PublishedApplication);
+        ExtensionInstallation.RunModal();
+    end;
+
+    procedure InstallAppsourceExtensionWithRefreshSession(ApplicationID: Text; TelemetryURL: Text);
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        MySessionSettings: SessionSettings;
+        AppId: Guid;
+    begin
+        if not InstallAppsourceExtension(ApplicationID, TelemetryURL) then begin // successful installation returns false
+            AppId := MapMarketplaceIdToAppId(ApplicationID);
+            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
+                SaveExtensionPendingSetup(AppId);
+                MySessionSettings.Init();
+                MySessionSettings.RequestSessionUpdate(false);
+            end else begin
+                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+                ExtensionPendingSetup.DeleteAll();
+            end;
+        end;
+    end;
+
+    procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        MySessionSettings: SessionSettings;
+    begin
+        if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
+            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
+                SaveExtensionPendingSetup(AppId);
+                MySessionSettings.Init();
+                MySessionSettings.RequestSessionUpdate(false);
+            end else begin
+                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+                ExtensionPendingSetup.DeleteAll();
+            end;
     end;
 
     [TryFunction]
@@ -226,13 +325,12 @@ codeunit 2501 "Extension Marketplace"
     begin
         ID := MapMarketplaceIdToAppId(ApplicationID);
 
+        MarketplaceExtnDeployment.SetAppID(ID);
         MarketplaceExtnDeployment.RunModal();
 
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             InstallMarketplaceExtension(ID, ResponseURL, MarketplaceExtnDeployment.GetLanguageId());
     end;
-
-
 
     procedure IsMarketplaceEnabled(): Boolean
     var
@@ -250,9 +348,9 @@ codeunit 2501 "Extension Marketplace"
 
     procedure InitializeHTTPRequest(URL: Text)
     var
-        EnvironmentInfo: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        if not EnvironmentInfo.IsSaaS() then
+        if not EnvironmentInformation.IsSaaS() then
             OnOverrideUrl(URL);
 
         HttpWebRequest := HttpWebRequest.Create(URL);
@@ -271,7 +369,7 @@ codeunit 2501 "Extension Marketplace"
         HttpWebRequest.CookieContainer := CookieContainer;
     end;
 
-    local procedure AddBodyAsText(OperationResult: Text)
+    local procedure AddBodyAsText(InstallationResult: Text)
     var
         RequestStr: DotNet Stream;
         StreamWriter: DotNet StreamWriter;
@@ -279,7 +377,7 @@ codeunit 2501 "Extension Marketplace"
         BodyText: Text;
     begin
         // BodyText is an enum string that AppSource recognizes, as defined by the OperationResult.
-        BodyText := StrSubstNo(TelemetryBodyTxt, OperationResult, 'ExtensionInstallation');
+        BodyText := StrSubstNo(TelemetryBodyTxt, InstallationResult, 'ExtensionInstallation');
         RequestStr := HttpWebRequest.GetRequestStream();
         StreamWriter := StreamWriter.StreamWriter(RequestStr, Encoding);
         StreamWriter.Write(BodyText);
@@ -288,39 +386,127 @@ codeunit 2501 "Extension Marketplace"
         StreamWriter.Dispose();
     end;
 
-    local procedure InstallApp(PackageId: Guid; ResponseURL: Text; lcid: Integer)
+    local procedure InstallApp(PackageId: Guid; ResponseURL: Text; lcid: Integer): Boolean
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         HasSucceeded: Boolean;
     begin
-
         HasSucceeded := ExtensionInstallationImpl.InstallExtensionWithConfirmDialog(PackageId, lcid);
-
 
         if HasSucceeded = true then
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::Successful)
         else
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
+
+        exit(HasSucceeded);
     end;
 
-    local procedure IsFirstPartyExtension(NAVAppTable: Record "NAV App"): Boolean
+    local procedure InstallApp(PackageId: Guid; AppId: Guid; ResponseURL: Text; lcid: Integer)
     begin
-        if NAVAppTable.Publisher = 'Microsoft' then
+        if not InstallApp(PackageId, ResponseURL, lcid) then
+            exit;
+
+        RunSetupForExtension(AppId);
+    end;
+
+    procedure RunSetupForExtension(AppId: Guid)
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        if not GuidedExperience.SetupForExtensionExists(AppId) then begin
+            Message(AppDoesntNeedSetupMsg);
+            exit;
+        end;
+
+        GuidedExperience.RunExtensionSetup(AppId);
+    end;
+
+    procedure RunPendingSetup()
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+        AppToSetup: Guid;
+    begin
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.SetRange("Created On", CurrentDateTime - (5 * 60000), CurrentDateTime); // created in the last 5 minutes
+        if ExtensionPendingSetup.FindFirst() then begin
+            AppToSetup := ExtensionPendingSetup."App Id";
+            ExtensionPendingSetup.SetRange("Created On");
+            ExtensionPendingSetup.DeleteAll();
+            RunSetupForExtension(AppToSetup);
+        end else begin
+            ExtensionPendingSetup.SetRange("Created On");
+            ExtensionPendingSetup.DeleteAll();
+        end;
+    end;
+
+    local procedure SaveExtensionPendingSetup(AppIdToSave: Guid)
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+        ExtensionSetupLauncher: Page "Extension Setup Launcher";
+    begin
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.DeleteAll();
+        Clear(ExtensionPendingSetup);
+        ExtensionPendingSetup."User Id" := UserSecurityId();
+        ExtensionPendingSetup."Created On" := CurrentDateTime();
+        ExtensionPendingSetup."App Id" := AppIdToSave;
+        if ExtensionPendingSetup.Insert() then;
+        Commit();
+        ExtensionSetupLauncher.SetNoSetupOnOpen(true);
+        ExtensionSetupLauncher.Run();
+    end;
+
+    procedure SetupForExtensionExists(AppId: Guid): Boolean
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        exit(GuidedExperience.SetupForExtensionExists(AppId));
+    end;
+
+    local procedure IsFirstPartyExtension(PublishedApplication: Record "Published Application"): Boolean
+    begin
+        if PublishedApplication.Publisher = 'Microsoft' then
             exit(true);
 
         exit(false);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, 2000000006, 'InvokeExtensionInstallation', '', false, false)]
+    PROCEDURE GetMarketplaceEmbeddedUrl(): Text;
+    BEGIN
+        EXIT(AppsourceTxt + EmbedRelativeTxt);
+    END;
+
+    PROCEDURE GetMessageType(JObject: DotNet JObject): Text;
+    BEGIN
+        // Extracts the 'msgType' property from the
+        EXIT(GetValue(JObject, 'msgType', TRUE));
+    END;
+
+    PROCEDURE GetApplicationIdFromData(JObject: DotNet JObject): Text;
+    VAR
+        TempObject: DotNet JObject;
+    BEGIN
+        // Extracts the applicationId property out of the data object return by the SPZA site
+        TempObject := TempObject.Parse(GetValue(JObject, 'data', TRUE));
+        EXIT(GetValue(TempObject, 'applicationId', true));
+    END;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", InvokeExtensionInstallation, '', false, false)]
     local procedure InvokeExtensionInstallation(AppId: Text; ResponseUrl: Text)
     begin
         if not InstallExtension(AppId, ResponseUrl) then
             Message(GetLastErrorText());
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false)]
     internal procedure OnOverrideUrl(var Url: Text)
     begin
         // Provides an option to rewrite URL in non SaaS environments.
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
+    local procedure OpenAppSourceMarket()
+    begin
+        page.Run(Page::"Extension Marketplace");
     end;
 }

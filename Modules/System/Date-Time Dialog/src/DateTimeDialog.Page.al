@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 /// <summary>
-/// Dialog for entering DataTime values.
+/// Dialog for entering Date or DateTime values.
 /// </summary>
 page 684 "Date-Time Dialog"
 {
@@ -20,6 +20,7 @@ page 684 "Date-Time Dialog"
             {
                 ApplicationArea = All;
                 Caption = 'Date';
+                ToolTip = 'Specifies the date.';
 
                 trigger OnValidate()
                 begin
@@ -31,6 +32,8 @@ page 684 "Date-Time Dialog"
             {
                 ApplicationArea = All;
                 Caption = 'Time';
+                ToolTip = 'Specifies the time of day.';
+                Visible = not TimeHidden;
             }
         }
     }
@@ -42,6 +45,8 @@ page 684 "Date-Time Dialog"
     var
         DateValue: Date;
         TimeValue: Time;
+        [InDataSet]
+        TimeHidden: Boolean;
 
     /// <summary>
     /// Setter method to initialize the Date and Time fields on the page.
@@ -54,12 +59,38 @@ page 684 "Date-Time Dialog"
     end;
 
     /// <summary>
-    /// Getter method for the entered datatime value.
+    /// Getter method for the entered datetime value.
     /// </summary>
     /// <returns>The value that is set on the page.</returns>
     procedure GetDateTime(): DateTime
     begin
         exit(CreateDateTime(DateValue, TimeValue));
     end;
-}
 
+
+    /// <summary>
+    /// Method for hiding the time on the page.
+    /// </summary>
+    procedure UseDateOnly()
+    begin
+        TimeHidden := true;
+    end;
+
+    /// <summary>
+    /// Setter method to initialize the Date on the page.
+    /// </summary>
+    /// <param name="NewDate">The value to set.</param>
+    procedure SetDate(NewDate: Date)
+    begin
+        DateValue := NewDate;
+    end;
+
+    /// <summary>
+    /// Getter method for the entered date value.
+    /// </summary>
+    /// <returns>The value that is set on the page.</returns>
+    procedure GetDate(): Date
+    begin
+        exit(DateValue);
+    end;
+}

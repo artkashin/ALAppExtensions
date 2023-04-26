@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 page 130451 "AL Test Tool"
 {
     AccessByPermission = TableData "Test Method Line" = RIMD;
@@ -12,59 +17,117 @@ page 130451 "AL Test Tool"
     SaveValues = true;
     SourceTable = "Test Method Line";
     UsageCategory = Administration;
+    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
 
     layout
     {
         area(content)
         {
-            field(CurrentSuiteName; CurrentSuiteName)
+            group(Settings)
             {
-                ApplicationArea = All;
-                Caption = 'Suite Name';
-                ToolTip = 'Specifies the currently selected Test Suite';
+                ShowCaption = false;
+                field(CurrentSuiteName; CurrentSuiteName)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Suite Name';
+                    ToolTip = 'Specifies the currently selected Test Suite';
 
-                trigger OnLookup(var Text: Text): Boolean
-                var
-                    ALTestSuite: Record "AL Test Suite";
-                begin
-                    ALTestSuite.Name := CurrentSuiteName;
-                    if PAGE.RunModal(0, ALTestSuite) <> ACTION::LookupOK then
-                        exit(false);
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        ALTestSuite: Record "AL Test Suite";
+                    begin
+                        ALTestSuite.Name := CurrentSuiteName;
+                        if PAGE.RunModal(0, ALTestSuite) <> ACTION::LookupOK then
+                            exit(false);
 
-                    Text := ALTestSuite.Name;
-                    CurrPage.Update(false);
-                    exit(true);
-                end;
+                        Text := ALTestSuite.Name;
+                        CurrPage.Update(false);
+                        exit(true);
+                    end;
 
-                trigger OnValidate()
-                begin
-                    ChangeTestSuite();
-                end;
+                    trigger OnValidate()
+                    begin
+                        ChangeTestSuite();
+                    end;
+                }
+
+                field(TestRunner; TestRunnerDisplayName)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Test Runner Codeunit';
+                    Editable = false;
+                    ToolTip = 'Specifies currently selected test runner';
+
+                    trigger OnDrillDown()
+                    begin
+                        // Used to fix the rendering - don't show as a box
+                        Error('');
+                    end;
+
+                    trigger OnAssistEdit()
+                    var
+                        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                    begin
+                        TestSuiteMgt.LookupTestRunner(GlobalALTestSuite);
+                        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
+                    end;
+                }
+
+                field(CodeCoverageTrackingType; GlobalALTestSuite."CC Tracking Type")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Code Coverage Tracking';
+                    ToolTip = 'Specifies how the code coverage should be tracked';
+
+                    trigger OnValidate()
+                    var
+                        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                    begin
+                        TestSuiteMgt.UpdateCodeCoverageTrackingType(GlobalALTestSuite);
+                    end;
+                }
+
+                field(CodeCoverageTrackAllSesssions; GlobalALTestSuite."CC Track All Sessions")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Code Coverage Track All Sessions';
+                    ToolTip = 'Specifies should all seesions be tracked';
+
+                    trigger OnValidate()
+                    var
+                        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                    begin
+                        TestSuiteMgt.UpdateCodeCoverageTrackAllSesssions(GlobalALTestSuite);
+                    end;
+                }
             }
+
             repeater(Control1)
             {
                 IndentationColumn = NameIndent;
                 IndentationControls = Name;
                 ShowAsTree = true;
                 ShowCaption = false;
-                field(LineType; "Line Type")
+                field(LineType; Rec."Line Type")
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specified the line type.';
                     Caption = 'Line Type';
                     Editable = false;
                     Style = Strong;
                     StyleExpr = LineTypeEmphasize;
                 }
-                field(TestCodeunit; "Test Codeunit")
+                field(TestCodeunit; Rec."Test Codeunit")
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies the ID of the test codeunit.';
                     BlankZero = true;
                     Caption = 'Codeunit ID';
                     Editable = false;
                     Style = Strong;
                     StyleExpr = TestCodeunitEmphasize;
                 }
-                field(Name; Name)
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
@@ -73,9 +136,10 @@ page 130451 "AL Test Tool"
                     StyleExpr = NameEmphasize;
                     ToolTip = 'Specifies the name of the test tool.';
                 }
-                field(Run; Run)
+                field(Run; Rec.Run)
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies whether the tests should be executed.';
                     Caption = 'Run';
 
                     trigger OnValidate()
@@ -83,9 +147,10 @@ page 130451 "AL Test Tool"
                         CurrPage.Update(true);
                     end;
                 }
-                field(Result; Result)
+                field(Result; Rec.Result)
                 {
                     ApplicationArea = All;
+                    Tooltip = 'Specifies whether the tests passed, failed or were skipped.';
                     BlankZero = true;
                     Caption = 'Result';
                     Editable = false;
@@ -151,24 +216,17 @@ page 130451 "AL Test Tool"
                     ToolTip = 'Specifies the number of Tests Not Executed';
                 }
             }
+
+#if not CLEAN21
             group(Control13)
             {
                 ShowCaption = false;
-                field(TestRunner; TestRunnerDisplayName)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Test Runner Codeunit';
-                    Editable = false;
-                    Enabled = false;
-                    ToolTip = 'Specifies currently selected test runner';
-
-                    trigger OnDrillDown()
-                    begin
-                        // Used to fix the rendering - don't show as a box
-                        Error('');
-                    end;
-                }
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Group will be deleted, control was moved to the top of the page.';
+                ObsoleteTag = '21.0';
             }
+#endif
         }
     }
 
@@ -176,30 +234,55 @@ page 130451 "AL Test Tool"
     {
         area(processing)
         {
-            group("Manage Tests")
+            group("Run Tests")
             {
-                Caption = 'Manage Tests';
-                action(DeleteLines)
+                Caption = 'Run Tests';
+                action(RunTests)
                 {
                     ApplicationArea = All;
-                    Caption = '&Delete Lines';
-                    Image = Delete;
+                    Caption = '&Run Tests';
+                    Image = Start;
                     Promoted = true;
                     PromotedCategory = Process;
                     PromotedIsBig = true;
                     PromotedOnly = true;
-                    ToolTip = 'Delete the selected lines.';
+                    ToolTip = 'Runs tests.';
+
+                    trigger OnAction()
+                    var
+                        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+                        TestRunnerProgessDialog: Codeunit "Test Runner - Progress Dialog";
+                    begin
+                        BindSubscription(TestRunnerProgessDialog);
+                        TestSuiteMgt.RunTestSuiteSelection(Rec);
+                        CurrPage.Update(true);
+                    end;
+                }
+                action(RunSelectedTests)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Run Se&lected Tests';
+                    Image = TestFile;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    ToolTip = 'Runs selected tests.';
 
                     trigger OnAction()
                     var
                         TestMethodLine: Record "Test Method Line";
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
+                        TestMethodLine.Copy(Rec);
                         CurrPage.SetSelectionFilter(TestMethodLine);
-                        TestMethodLine.DeleteAll(true);
-                        TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
+                        TestSuiteMgt.RunSelectedTests(TestMethodLine);
                     end;
                 }
+            }
+            group("Manage Tests")
+            {
+                Caption = 'Manage Tests';
                 action(GetTestCodeunits)
                 {
                     ApplicationArea = All;
@@ -238,51 +321,78 @@ page 130451 "AL Test Tool"
                         CurrPage.Update(false);
                     end;
                 }
-            }
-            group("Run Tests")
-            {
-                Caption = 'Run Tests';
-                action(RunTests)
+                action(UpdateTests)
                 {
                     ApplicationArea = All;
-                    Caption = '&Run Tests';
-                    Image = Start;
+                    Caption = 'Update Test Methods';
+                    Image = RefreshLines;
                     Promoted = true;
                     PromotedCategory = Process;
                     PromotedIsBig = true;
                     PromotedOnly = true;
-                    ToolTip = 'Runs selected tests.';
+                    ToolTip = 'Updates the test methods for the entire test suite.';
 
                     trigger OnAction()
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-                        TestRunnerProgessDialog: Codeunit "Test Runner - Progress Dialog";
                     begin
-                        BindSubscription(TestRunnerProgessDialog);
-                        TestSuiteMgt.RunTestSuiteSelection(Rec);
-                        CurrPage.Update(true);
+                        TestSuiteMgt.UpdateTestMethods(Rec);
+                        CurrPage.Update(false);
                     end;
                 }
-                action(RunSelectedTests)
+                action(DeleteLines)
                 {
                     ApplicationArea = All;
-                    Caption = 'Run Se&lected Tests';
-                    Image = TestFile;
+                    Caption = '&Delete Lines';
+                    Image = Delete;
                     Promoted = true;
                     PromotedCategory = Process;
                     PromotedIsBig = true;
                     PromotedOnly = true;
+                    ToolTip = 'Delete the selected lines.';
 
                     trigger OnAction()
                     var
                         TestMethodLine: Record "Test Method Line";
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestMethodLine.Copy(Rec);
+                        if GuiAllowed() then
+                            if not Confirm(DeleteQst, false) then
+                                exit;
+
                         CurrPage.SetSelectionFilter(TestMethodLine);
-                        TestSuiteMgt.RunSelectedTests(TestMethodLine);
-                        CurrPage.Update(true);
+                        TestMethodLine.DeleteAll(true);
+                        TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
                     end;
+                }
+                action(InvertRun)
+                {
+                    ApplicationArea = All;
+                    Caption = '&Invert Run Selection';
+                    Image = Change;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    ToolTip = 'Invert Run Selection on selected lines.';
+
+                    trigger OnAction()
+                    begin
+                        InvertRunSelection();
+                    end;
+                }
+
+                action(CodeCoverage)
+                {
+                    ApplicationArea = All;
+                    Caption = '&Code Coverage';
+                    Image = CheckRulesSyntax;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    PromotedIsBig = true;
+                    PromotedOnly = true;
+                    RunObject = Page "AL Code Coverage";
+                    ToolTip = 'Specifies the action for invoking Code Coverage page';
                 }
             }
             group("Test Suite")
@@ -293,6 +403,7 @@ page 130451 "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'Select Test R&unner';
                     Image = SetupList;
+                    Visible = false;
                     Promoted = true;
                     PromotedCategory = Process;
                     PromotedIsBig = true;
@@ -304,6 +415,7 @@ page 130451 "AL Test Tool"
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
                         TestSuiteMgt.LookupTestRunner(GlobalALTestSuite);
+                        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
                     end;
                 }
             }
@@ -343,6 +455,7 @@ page 130451 "AL Test Tool"
         RunDuration: Duration;
         TestRunnerDisplayName: Text;
         ErrorMessageWithStackTraceTxt: Text;
+        DeleteQst: Label 'Are you sure you want to delete the selected lines?';
 
     local procedure ChangeTestSuite()
     var
@@ -353,9 +466,9 @@ page 130451 "AL Test Tool"
 
         CurrPage.SaveRecord();
 
-        FilterGroup(2);
-        SetRange("Test Suite", CurrentSuiteName);
-        FilterGroup(0);
+        Rec.FilterGroup(2);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
+        Rec.FilterGroup(0);
 
         CurrPage.Update(false);
 
@@ -377,28 +490,41 @@ page 130451 "AL Test Tool"
                 GlobalALTestSuite.Get(CurrentSuiteName);
             end;
 
-        FilterGroup(2);
-        SetRange("Test Suite", CurrentSuiteName);
-        FilterGroup(0);
+        Rec.FilterGroup(2);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
+        Rec.FilterGroup(0);
 
-        if Find('-') then;
+        if Rec.Find('-') then;
 
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
     end;
 
     local procedure UpdateDisplayPropertiesForLine()
     begin
-        NameIndent := "Line Type";
-        LineTypeEmphasize := "Line Type" = "Line Type"::Codeunit;
-        TestCodeunitEmphasize := "Line Type" = "Line Type"::Codeunit;
-        ResultEmphasize := Result = Result::Success;
+        NameIndent := Rec."Line Type";
+        LineTypeEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+        TestCodeunitEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+        ResultEmphasize := Rec.Result = Rec.Result::Success;
     end;
 
     local procedure UpdateCalculatedFields()
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        RunDuration := "Finish Time" - "Start Time";
+        RunDuration := Rec."Finish Time" - Rec."Start Time";
         ErrorMessageWithStackTraceTxt := TestSuiteMgt.GetErrorMessageWithStackTrace(Rec);
+    end;
+
+    local procedure InvertRunSelection()
+    var
+        TestMethodLine: Record "Test Method Line";
+    begin
+        CurrPage.SetSelectionFilter(TestMethodLine);
+
+        if TestMethodLine.FindSet(true, false) then
+            repeat
+                TestMethodLine.Validate(Run, not TestMethodLine.Run);
+                TestMethodLine.Modify(true);
+            until TestMethodLine.Next() = 0;
     end;
 }

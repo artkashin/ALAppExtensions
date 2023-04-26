@@ -10,6 +10,8 @@ codeunit 4030 "Client Type Management"
 {
     Access = Public;
     SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         ClientTypeMgtImpl: Codeunit "Client Type Mgt. Impl.";
@@ -21,6 +23,7 @@ codeunit 4030 "Client Type Management"
     /// IF ClientTypeManagement.GetCurrentClientType IN [CLIENTTYPE::xxx, CLIENTTYPE::yyy] THEN
     /// </code>
     /// </example>
+    /// <returns>The client type of the current session.</returns>
     procedure GetCurrentClientType(): ClientType
     begin
         exit(ClientTypeMgtImpl.GetCurrentClientType());

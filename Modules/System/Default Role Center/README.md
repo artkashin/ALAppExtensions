@@ -4,7 +4,7 @@ Example
 
 ```
 [EventSubscriber(ObjectType::Codeunit, Codeunit::"Default Role Center", 'OnBeforeGetDefaultRoleCenter', '', false, false)]
-local procedure SetRoleCenter(RoleCenterId: Integer; var Handled: Boolean)
+local procedure SetRoleCenter(var RoleCenterId: Integer; var Handled: Boolean)
 begin
     // Do not overwrite already defined default role center
     if Handled then
@@ -35,11 +35,11 @@ end;
 internal procedure OnBeforeGetDefaultRoleCenter(var RoleCenterId: Integer; var Handled: Boolean)
 ```
 #### Parameters
-*RoleCenterId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*RoleCenterId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 Out parameter holding the Role Center ID.
 
-*Handled ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
+*Handled ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
 
 Handled pattern
 
@@ -50,7 +50,7 @@ Handled pattern
  
 
 
-## BLANK (Profile )
+## BLANK (Profile)
 
  Empty profile to use in case no other profile is present when system is initializing.
  

@@ -6,25 +6,6 @@ Changes the language for Windows and applications, and converts language codes t
  Table that contains the available application languages.
  
 
-### GetLanguageId (Method) <a name="GetLanguageId"></a> 
-
- [OBSOLETE] Gets the language ID based on its code.
- 
-
-#### Syntax
-```
-[Obsolete('Please use function with the same name from this modules facade codeunit 43 - "Language".')]
-procedure GetLanguageId(LanguageCode: Code[10]): Integer
-```
-#### Parameters
-*LanguageCode ([Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type))* 
-
-The code of the language
-
-#### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
-
-The ID for the language code that was provided for this function. If no ID is found for the language code, then it returns 0.
 
 ## Language (Codeunit 43)
 
@@ -43,7 +24,7 @@ The ID for the language code that was provided for this function. If no ID is fo
 procedure GetUserLanguageCode(): Code[10]
 ```
 #### Return Value
-*[Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type)*
+*[Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241)*
 
 The language code of the user's language
 ### GetLanguageIdOrDefault (Method) <a name="GetLanguageIdOrDefault"></a> 
@@ -56,12 +37,12 @@ The language code of the user's language
 procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer
 ```
 #### Parameters
-*LanguageCode ([Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type))* 
+*LanguageCode ([Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241))* 
 
 The code of the language
 
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
 The ID for the language code that was provided for this function. If no ID is found for the language code, then it returns the ID of the current user's language.
 ### GetLanguageId (Method) <a name="GetLanguageId"></a> 
@@ -74,12 +55,12 @@ The ID for the language code that was provided for this function. If no ID is fo
 procedure GetLanguageId(LanguageCode: Code[10]): Integer
 ```
 #### Parameters
-*LanguageCode ([Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type))* 
+*LanguageCode ([Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241))* 
 
 The code of the language
 
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
 The ID for the language code that was provided for this function. If no ID is found for the language code, then it returns 0.
 ### GetLanguageCode (Method) <a name="GetLanguageCode"></a> 
@@ -92,12 +73,12 @@ The ID for the language code that was provided for this function. If no ID is fo
 procedure GetLanguageCode(LanguageId: Integer): Code[10]
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The ID of the language.
 
 #### Return Value
-*[Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type)*
+*[Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241)*
 
 The code of the language that corresponds to the ID, or an empty code if the language with the specified ID does not exist.
 ### GetWindowsLanguageName (Method) <a name="GetWindowsLanguageName"></a> 
@@ -110,12 +91,12 @@ The code of the language that corresponds to the ID, or an empty code if the lan
 procedure GetWindowsLanguageName(LanguageCode: Code[10]): Text
 ```
 #### Parameters
-*LanguageCode ([Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type))* 
+*LanguageCode ([Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241))* 
 
 The code of the language.
 
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
 The name of the language corresponding to the code or empty string, if language with the specified code does not exist
 ### GetWindowsLanguageName (Method) <a name="GetWindowsLanguageName"></a> 
@@ -128,12 +109,12 @@ The name of the language corresponding to the code or empty string, if language 
 procedure GetWindowsLanguageName(LanguageId: Integer): Text
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The ID of the language.
 
 #### Return Value
-*[Text](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/text/text-data-type)*
+*[Text](https://go.microsoft.com/fwlink/?linkid=2210031)*
 
 The name of the language that corresponds to the ID, or an empty string if a language with the specified ID does not exist.
 ### GetApplicationLanguages (Method) <a name="GetApplicationLanguages"></a> 
@@ -160,7 +141,7 @@ A temporary record to place the result in
 procedure GetDefaultApplicationLanguageId(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
 The ID of the default language for the application.
 ### ValidateApplicationLanguageId (Method) <a name="ValidateApplicationLanguageId"></a> 
@@ -174,7 +155,7 @@ The ID of the default language for the application.
 procedure ValidateApplicationLanguageId(LanguageId: Integer)
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The ID of the language to validate.
 
@@ -188,7 +169,7 @@ The ID of the language to validate.
 procedure ValidateWindowsLanguageId(LanguageId: Integer)
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The ID of the language to validate.
 
@@ -202,7 +183,7 @@ The ID of the language to validate.
 procedure LookupApplicationLanguageId(var LanguageId: Integer)
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 Exit parameter that holds the chosen language ID.
 
@@ -216,9 +197,59 @@ Exit parameter that holds the chosen language ID.
 procedure LookupWindowsLanguageId(var LanguageId: Integer)
 ```
 #### Parameters
-*LanguageId ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 Exit parameter that holds the chosen language ID.
+
+### LookupLanguageCode (Method) <a name="LookupLanguageCode"></a> 
+
+ Opens a list of the languages that are available for the application so that the user can choose a language.
+ 
+
+#### Syntax
+```
+procedure LookupLanguageCode(var LanguageCode: Code[10])
+```
+#### Parameters
+*LanguageCode ([Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241))* 
+
+Exit parameter that holds the chosen language code.
+
+### GetParentLanguageId (Method) <a name="GetParentLanguageId"></a> 
+
+ Gets the parent language ID based on Windows Culture Info.
+ 
+
+#### Syntax
+```
+procedure GetParentLanguageId(LanguageId: Integer): Integer
+```
+#### Parameters
+*LanguageId ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
+
+Exit parameter that holds the chosen language ID.
+
+#### Return Value
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
+
+The ID of the parent language
+### SetPreferredLanguageID (Method) <a name="SetPreferredLanguageID"></a> 
+
+ Sets the preferred language for the provided user.
+ 
+
+#### Syntax
+```
+procedure SetPreferredLanguageID(UserSecID: Guid; NewLanguageID: Integer)
+```
+#### Parameters
+*UserSecID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The user security ID for the user for whom the preferred language is changed.
+
+*NewLanguageID ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
+
+The new preferred language for the user.
 
 ### OnGetUserLanguageCode (Event) <a name="OnGetUserLanguageCode"></a> 
 
@@ -232,11 +263,11 @@ Exit parameter that holds the chosen language ID.
 internal procedure OnGetUserLanguageCode(var UserLanguageCode: Code[10]; var Handled: Boolean)
 ```
 #### Parameters
-*UserLanguageCode ([Code[10]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type))* 
+*UserLanguageCode ([Code[10]](https://go.microsoft.com/fwlink/?linkid=2210241))* 
 
 Exit parameter that holds the user language code.
 
-*Handled ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
+*Handled ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
 
 To change the default behavior of the function that emits the event, set this parameter to true.
 

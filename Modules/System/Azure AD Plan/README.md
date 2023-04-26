@@ -1,4 +1,4 @@
-This module provides methods for retrieving and managing user plans in Azure Active Directory. The Plan and User Plan tables are marked as internal, so you must use the methods provided in this module to query them.
+This module provides methods for retrieving and managing user plans in Azure Active Directory as well as configuring the permissions users will get when assigned a plan. The Plan and User Plan tables are marked as internal, so you must use the methods provided in this module to query them.
 
 For on-premises versions, you can also use this module to do the following:
 - Check which plans are assigned to the users.
@@ -20,15 +20,16 @@ For on-premises versions, you can also use this module to do the following:
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure IsPlanAssigned(PlanGUID: Guid): Boolean
 ```
 #### Parameters
-*PlanGUID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*PlanGUID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 the plan GUID.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 true if the given plan has users assigned to it.
 ### IsPlanAssignedToUser (Method) <a name="IsPlanAssignedToUser"></a> 
@@ -38,16 +39,16 @@ true if the given plan has users assigned to it.
 
 #### Syntax
 ```
-[Scope('OnPrem')]
+[NonDebuggable]
 procedure IsPlanAssignedToUser(PlanGUID: Guid): Boolean
 ```
 #### Parameters
-*PlanGUID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*PlanGUID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 the plan GUID.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 true if the given plan is assigned to the current user.
 ### IsPlanAssignedToUser (Method) <a name="IsPlanAssignedToUser"></a> 
@@ -57,20 +58,20 @@ true if the given plan is assigned to the current user.
 
 #### Syntax
 ```
-[Scope('OnPrem')]
+[NonDebuggable]
 procedure IsPlanAssignedToUser(PlanGUID: Guid; UserGUID: Guid): Boolean
 ```
 #### Parameters
-*PlanGUID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*PlanGUID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 the plan GUID.
 
-*UserGUID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserGUID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 the user GUID.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 true if the given plan is assigned to the given user.
 ### IsGraphUserEntitledFromServicePlan (Method) <a name="IsGraphUserEntitledFromServicePlan"></a> 
@@ -81,35 +82,48 @@ true if the given plan is assigned to the given user.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure IsGraphUserEntitledFromServicePlan(var GraphUser: DotNet UserInfo): Boolean
 ```
 #### Parameters
-*GraphUser ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 the user to check.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 True if the given user is entitled from the service plan.
-### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
-OnRemoveUserGroupsForUserAndPlan
+### AssignDelegatedAdminPlanAndUserGroups (Method) <a name="AssignDelegatedAdminPlanAndUserGroups"></a> 
 
-
- Updates plans for user.
+ Assign the delegated admin plan and default user groups to the current user.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
+procedure AssignDelegatedAdminPlanAndUserGroups()
+```
+### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
+OnRemoveUserGroupsForUserAndPlan
+
+
+ Updates license plans for a user.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
 procedure UpdateUserPlans(UserSecurityId: Guid; var GraphUser: DotNet UserInfo)
 ```
 #### Parameters
-*UserSecurityId ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
-The user to update.
+The user for whom to update license information.
 
-*GraphUser ([DotNet UserInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.identitymodel.clients.activedirectory.userinfo?view=azure-dotnet))* 
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
 The graph user corresponding to the user to update, and containing the information about the plans assigned to the user.
 
@@ -117,18 +131,105 @@ The graph user corresponding to the user to update, and containing the informati
 OnRemoveUserGroupsForUserAndPlan
 
 
- Updates plans for user.
+ Updates license plans for a user.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
+procedure UpdateUserPlans(UserSecurityId: Guid; var GraphUser: DotNet UserInfo; AppendPermissionsOnNewPlan: Boolean; RemovePermissionsOnDeletePlan: Boolean)
+```
+#### Parameters
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The user for whom to update license information.
+
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
+
+The graph user corresponding to the user to update, and containing the information about the plans assigned to the user.
+
+*AppendPermissionsOnNewPlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Append permissions from the new plan to the user.
+
+*RemovePermissionsOnDeletePlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Remove permissions when removing the plan for the user.
+
+### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
+OnRemoveUserGroupsForUserAndPlan
+
+
+ Updates license plans for a user.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
 procedure UpdateUserPlans(UserSecurityId: Guid)
 ```
 #### Parameters
-*UserSecurityId ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
-The user to update.
+The user for whom to update license information.
+
+### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
+OnRemoveUserGroupsForUserAndPlan
+
+
+ Updates license plans for a user.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
+[Obsolete('Replaced with an overload accepting the RemovePlansOnDeleteUser parameter', '18.0')]
+procedure UpdateUserPlans(UserSecurityId: Guid; AppendPermissionsOnNewPlan: Boolean; RemovePermissionsOnDeletePlan: Boolean)
+```
+#### Parameters
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The user for whom to update license information.
+
+*AppendPermissionsOnNewPlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Append permissions from the new plan to the user.
+
+*RemovePermissionsOnDeletePlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Remove permissions when removing the plan for the user.
+
+### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
+OnRemoveUserGroupsForUserAndPlan
+
+
+ Updates license plans for a user.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+procedure UpdateUserPlans(UserSecurityId: Guid; AppendPermissionsOnNewPlan: Boolean; RemovePermissionsOnDeletePlan: Boolean; RemovePlansOnDeleteUser: Boolean)
+```
+#### Parameters
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The user for whom to update license information.
+
+*AppendPermissionsOnNewPlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Add permissions from the new license plan to the user. Existing permissions will not be affected.
+
+*RemovePermissionsOnDeletePlan ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Remove permissions when removing a license plan for a user.
+
+*RemovePlansOnDeleteUser ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Remove license plans when a user is deleted in Office 365.
 
 ### UpdateUserPlans (Method) <a name="UpdateUserPlans"></a> 
 OnRemoveUserGroupsForUserAndPlan
@@ -140,6 +241,7 @@ OnRemoveUserGroupsForUserAndPlan
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure UpdateUserPlans()
 ```
 ### RefreshUserPlanAssignments (Method) <a name="RefreshUserPlanAssignments"></a> 
@@ -152,10 +254,11 @@ OnRemoveUserGroupsForUserAndPlan
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure RefreshUserPlanAssignments(UserSecurityId: Guid)
 ```
 #### Parameters
-*UserSecurityId ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The user to update.
 
@@ -168,14 +271,15 @@ The user to update.
 ```
 [Scope('OnPrem')]
 [TryFunction]
+[NonDebuggable]
 procedure TryGetAzureUserPlanRoleCenterId(var RoleCenterID: Integer; UserSecurityId: Guid)
 ```
 #### Parameters
-*RoleCenterID ([Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type))* 
+*RoleCenterID ([Integer](https://go.microsoft.com/fwlink/?linkid=2209956))* 
 
 The roleCenterID to return.
 
-*UserSecurityId ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The user GUID.
 
@@ -187,10 +291,11 @@ The user GUID.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure DoPlansExist(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 Returns true if at least one plan exist.
 ### DoUserPlansExist (Method) <a name="DoUserPlansExist"></a> 
@@ -201,10 +306,11 @@ Returns true if at least one plan exist.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure DoUserPlansExist(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 Returns true if at least one user is assigned to a plan.
 ### DoesPlanExist (Method) <a name="DoesPlanExist"></a> 
@@ -215,15 +321,16 @@ Returns true if at least one user is assigned to a plan.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure DoesPlanExist(PlanGUID: Guid): Boolean
 ```
 #### Parameters
-*PlanGUID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*PlanGUID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The plan GUID.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 Returns true if the given plan exists.
 ### DoesUserHavePlans (Method) <a name="DoesUserHavePlans"></a> 
@@ -234,71 +341,182 @@ Returns true if the given plan exists.
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure DoesUserHavePlans(UserSecurityId: Guid): Boolean
 ```
 #### Parameters
-*UserSecurityId ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The user GUID.
 
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
 Returns true if the given user has at least one plan.
 ### GetAvailablePlansCount (Method) <a name="GetAvailablePlansCount"></a> 
 
- Returns the total number of available plans.
+ Gets the total number of available plans.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure GetAvailablePlansCount(): Integer
 ```
 #### Return Value
-*[Integer](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/integer/integer-data-type)*
+*[Integer](https://go.microsoft.com/fwlink/?linkid=2209956)*
 
 Returns the total number of available plans.
 ### CheckMixedPlans (Method) <a name="CheckMixedPlans"></a> 
-OnCanCurrentUserManagePlansAndGroups
 
 
- Checks if mixed plans are correctly set.
+ Checks whether the plan configuration mixes different plans.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
 procedure CheckMixedPlans()
 ```
-### MixedPlansExist (Method) <a name="MixedPlansExist"></a> 
+### CheckMixedPlans (Method) <a name="CheckMixedPlans"></a> 
 
- Returns true if a mixed plan exists. 
+ Checks whether the plan configuration mixes different plans.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
+[NonDebuggable]
+procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
+```
+#### Parameters
+*PlanNamesPerUser ([Dictionary of [Text, List of [Text]]]())* 
+
+A mapping of new plans for user identifiers.
+
+*ErrorOutForAdmin ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
+
+Specifies if an error (instead of a message) should be shown for an admin when this function is called.
+
+### MixedPlansExist (Method) <a name="MixedPlansExist"></a> 
+
+ Returns true if there are incompatible plans in the system.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
 procedure MixedPlansExist(): Boolean
 ```
 #### Return Value
-*[Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type)*
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
 
-Returns true if a mixed plan exists.
-### SetTestInProgress (Method) <a name="SetTestInProgress"></a> 
+Returns true if there are incompatible plans in the system. 
+### GetPlanNames (Method) <a name="GetPlanNames"></a> 
 
- Sets this codeunit in test mode (for running unit tests).
+ Gets plans that are assigned to a user in Office 365.
  
 
 #### Syntax
 ```
 [Scope('OnPrem')]
-procedure SetTestInProgress(EnableTestability: Boolean)
+[NonDebuggable]
+procedure GetPlanNames(GraphUser: DotNet UserInfo; var PlanNames: List of [Text])
 ```
 #### Parameters
-*EnableTestability ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
 
-True to enable the test mode.
+The Graph user to get plans for.
+
+*PlanNames ([List of [Text]]())* 
+
+The names of the plans that are assigned to the user in Office 365.
+
+### GetPlanNames (Method) <a name="GetPlanNames"></a> 
+
+ Gets plans that are assigned to a Business Central user.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
+procedure GetPlanNames(UserSecID: Guid; var PlanNames: List of [Text])
+```
+#### Parameters
+*UserSecID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The security ID of the user whose plans we are getting.
+
+*PlanNames ([List of [Text]]())* 
+
+The plan names of plans assigned to the Office 365 user.
+
+### GetPlanIDs (Method) <a name="GetPlanIDs"></a> 
+
+ Gets plans that are assigned to a user in Office 365.
+ 
+
+#### Syntax
+```
+[Scope('OnPrem')]
+[NonDebuggable]
+procedure GetPlanIDs(GraphUser: DotNet UserInfo; var PlanIDs: List of [Guid])
+```
+#### Parameters
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
+
+The Graph user to get plans for.
+
+*PlanIDs ([List of [Guid]]())* 
+
+The IDs of the plans that are assigned to the user in Office 365.
+
+### CheckIfPlansDifferent (Method) <a name="CheckIfPlansDifferent"></a> 
+
+ Checks whether a user is assigned to different plans in Business Central and Graph.
+ 
+
+#### Syntax
+```
+[NonDebuggable]
+procedure CheckIfPlansDifferent(GraphUser: DotNet UserInfo; UserSecID: Guid): Boolean
+```
+#### Parameters
+*GraphUser ([DotNet UserInfo](https://go.microsoft.com/fwlink/?linkid=2210120))* 
+
+The user in Graph to check plans for.
+
+*UserSecID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The security ID of the user to get plans for.
+
+#### Return Value
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
+
+True, if the plans differ, false otherwise.
+### IsBCServicePlan (Method) <a name="IsBCServicePlan"></a> 
+
+ Checks whether a given service plan is a Business Central service Plan
+ 
+
+#### Syntax
+```
+[NonDebuggable]
+procedure IsBCServicePlan(ServicePlanId: Guid): Boolean
+```
+#### Parameters
+*ServicePlanId ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
+
+The plan to check.
+
+#### Return Value
+*[Boolean](https://go.microsoft.com/fwlink/?linkid=2209954)*
+
+True, if the service plan is a Business Central Plan, false otherwise.
 
 ### OnRemoveUserGroupsForUserAndPlan (Event) <a name="OnRemoveUserGroupsForUserAndPlan"></a> 
 
@@ -310,14 +528,15 @@ True to enable the test mode.
 ```
 [IntegrationEvent(false, false)]
 [Scope('OnPrem')]
+[NonDebuggable]
 internal procedure OnRemoveUserGroupsForUserAndPlan(PlanID: Guid; UserSecurityID: Guid)
 ```
 #### Parameters
-*PlanID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*PlanID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The plan to remove.
 
-*UserSecurityID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The user to remove.
 
@@ -331,34 +550,17 @@ The user to remove.
 ```
 [IntegrationEvent(false, false)]
 [Scope('OnPrem')]
+[NonDebuggable]
 internal procedure OnUpdateUserAccessForSaaS(UserSecurityID: Guid; var UserGroupsAdded: Boolean)
 ```
 #### Parameters
-*UserSecurityID ([Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type))* 
+*UserSecurityID ([Guid](https://go.microsoft.com/fwlink/?linkid=2210122))* 
 
 The user to update.
 
-*UserGroupsAdded ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
+*UserGroupsAdded ([Boolean](https://go.microsoft.com/fwlink/?linkid=2209954))* 
 
 Whether the user groups were updated
-
-### OnCanCurrentUserManagePlansAndGroups (Event) <a name="OnCanCurrentUserManagePlansAndGroups"></a> 
-
- Integration event, raised from [CheckMixedPlans](#CheckMixedPlans).
- Subscribe to this event to check whether the user can manage plans and groups
- 
-
-#### Syntax
-```
-[IntegrationEvent(false, false)]
-[Scope('OnPrem')]
-internal procedure OnCanCurrentUserManagePlansAndGroups(var CanManage: Boolean)
-```
-#### Parameters
-*CanManage ([Boolean](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/boolean/boolean-data-type))* 
-
-Whether the user can manage plans and groups
-
 
 ## Plan Ids (Codeunit 9027)
 
@@ -367,7 +569,7 @@ Whether the user can manage plans and groups
 
 ### GetBasicPlanId (Method) <a name="GetBasicPlanId"></a> 
 
- Returns the ID for the Basic plan.
+ Returns the ID for the Dynamics 365 Business Central Basic Financials plan.
  
 
 #### Syntax
@@ -375,12 +577,12 @@ Whether the user can manage plans and groups
 procedure GetBasicPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Basic plan.
+The ID for the Dynamics 365 Business Central Basic Financials plan.
 ### GetTeamMemberPlanId (Method) <a name="GetTeamMemberPlanId"></a> 
 
- Returns the ID for the Finance and Operations, Team Member plan.
+ Returns the ID for the Dynamics 365 Business Central Team Member plan.
  
 
 #### Syntax
@@ -388,12 +590,12 @@ The ID for the Basic plan.
 procedure GetTeamMemberPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Finance and Operations, Team Member plan.
+The ID for the Dynamics 365 Business Central Team Member plan.
 ### GetEssentialPlanId (Method) <a name="GetEssentialPlanId"></a> 
 
- Returns the ID for the Finance and Operations plan.
+ Returns the ID for the Dynamics 365 Business Central Essentials plan.
  
 
 #### Syntax
@@ -401,12 +603,12 @@ The ID for the Finance and Operations, Team Member plan.
 procedure GetEssentialPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Finance and Operations plan.
+The ID for the Dynamics 365 Business Central Essentials plan.
 ### GetPremiumPlanId (Method) <a name="GetPremiumPlanId"></a> 
 
- Returns the ID for the Dynamics 365 Business Central, Premium User plan.
+ Returns the ID for the Dynamics 365 Business Central Premium plan.
  
 
 #### Syntax
@@ -414,25 +616,12 @@ The ID for the Finance and Operations plan.
 procedure GetPremiumPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Dynamics 365 Business Central, Premium User plan.
-### GetInvoicingPlanId (Method) <a name="GetInvoicingPlanId"></a> 
-
- Returns the ID for the Microsoft Invoicing plan.
- 
-
-#### Syntax
-```
-procedure GetInvoicingPlanId(): Guid
-```
-#### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
-
-The ID for the Microsoft Invoicing plan.
+The ID for the Dynamics 365 Business Central Premium plan.
 ### GetViralSignupPlanId (Method) <a name="GetViralSignupPlanId"></a> 
 
- Returns the ID for the Finance and Operations for IWs plan.
+ Returns the ID for the Dynamics 365 Business Central for IWs plan.
  
 
 #### Syntax
@@ -440,12 +629,12 @@ The ID for the Microsoft Invoicing plan.
 procedure GetViralSignupPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Finance and Operations for IWs plan.
+The ID for the Dynamics 365 Business Central for IWs plan.
 ### GetExternalAccountantPlanId (Method) <a name="GetExternalAccountantPlanId"></a> 
 
- Returns the ID for the Finance and Operations, External Accountant plan.
+ Returns the ID for the Dynamics 365 Business Central External Accountant plan.
  
 
 #### Syntax
@@ -453,12 +642,12 @@ The ID for the Finance and Operations for IWs plan.
 procedure GetExternalAccountantPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Finance and Operations, External Accountant plan.
+The ID for the Dynamics 365 Business Central External Accountant plan.
 ### GetDelegatedAdminPlanId (Method) <a name="GetDelegatedAdminPlanId"></a> 
 
- Returns the ID for the Administrator plan.
+ Returns the ID for the Delegated Admin agent - Partner plan.
  
 
 #### Syntax
@@ -466,9 +655,22 @@ The ID for the Finance and Operations, External Accountant plan.
 procedure GetDelegatedAdminPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Administrator plan.
+The ID for the Delegated Admin agent - Partner plan.
+### GetD365AdminPartnerPlanId (Method) <a name="GetD365AdminPartnerPlanId"></a> 
+
+ Returns the ID for the Dynamics 365 Admin - Partner plan.
+ 
+
+#### Syntax
+```
+procedure GetD365AdminPartnerPlanId(): Guid
+```
+#### Return Value
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
+
+The ID for the Dynamics 365 Admin - Partner plan.
 ### GetInternalAdminPlanId (Method) <a name="GetInternalAdminPlanId"></a> 
 
  Returns the ID for the Internal Administrator plan.
@@ -479,12 +681,12 @@ The ID for the Administrator plan.
 procedure GetInternalAdminPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
 The ID for the Internal Administrator plan.
 ### GetTeamMemberISVPlanId (Method) <a name="GetTeamMemberISVPlanId"></a> 
 
- Returns the ID for the Dynamics 365 Business Central, Team Member ISV plan.
+ Returns the ID for the D365 Business Central Team Member - Embedded plan.
  
 
 #### Syntax
@@ -492,12 +694,12 @@ The ID for the Internal Administrator plan.
 procedure GetTeamMemberISVPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Dynamics 365 Business Central, Team Member ISV plan.
+The ID for the D365 Business Central Team Member - Embedded plan.
 ### GetEssentialISVPlanId (Method) <a name="GetEssentialISVPlanId"></a> 
 
- Returns the ID for the Dynamics 365 Business Central, Essential ISV User plan.
+ Returns the ID for the Dynamics 365 Business Central Essential - Embedded plan.
  
 
 #### Syntax
@@ -505,12 +707,12 @@ The ID for the Dynamics 365 Business Central, Team Member ISV plan.
 procedure GetEssentialISVPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Dynamics 365 Business Central, Essential ISV User plan.
+The ID for the Dynamics 365 Business Central Essential - Embedded plan.
 ### GetPremiumISVPlanId (Method) <a name="GetPremiumISVPlanId"></a> 
 
- Returns the ID for the Dynamics 365 Business Central, Premium ISV User plan.
+ Returns the ID for the Dynamics 365 Business Central Premium - Embedded plan.
  
 
 #### Syntax
@@ -518,9 +720,9 @@ The ID for the Dynamics 365 Business Central, Essential ISV User plan.
 procedure GetPremiumISVPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Dynamics 365 Business Central, Premium ISV User plan.
+The ID for the Dynamics 365 Business Central Premium - Embedded plan.
 ### GetDeviceISVPlanId (Method) <a name="GetDeviceISVPlanId"></a> 
 
  Returns the ID for the Dynamics 365 Business Central Device - Embedded plan.
@@ -531,12 +733,12 @@ The ID for the Dynamics 365 Business Central, Premium ISV User plan.
 procedure GetDeviceISVPlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
 The ID for the Dynamics 365 Business Central Device - Embedded plan.
 ### GetDevicePlanId (Method) <a name="GetDevicePlanId"></a> 
 
- Returns the ID for the Finance and Operations, Device plan.
+ Returns the ID for the Dynamics 365 Business Central Device plan.
  
 
 #### Syntax
@@ -544,9 +746,61 @@ The ID for the Dynamics 365 Business Central Device - Embedded plan.
 procedure GetDevicePlanId(): Guid
 ```
 #### Return Value
-*[Guid](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/guid/guid-data-type)*
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
 
-The ID for the Finance and Operations, Device plan.
+The ID for the Dynamics 365 Business Central Device plan.
+### GetBasicFinancialsISVPlanId (Method) <a name="GetBasicFinancialsISVPlanId"></a> 
+
+ Returns the ID for the Dynamics 365 Business Central Basic Financials - Embedded plan.
+ 
+
+#### Syntax
+```
+procedure GetBasicFinancialsISVPlanId(): Guid
+```
+#### Return Value
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
+
+The ID for the Dynamics 365 Business Central Basic Financials - Embedded plan.
+### GetAccountantHubPlanId (Method) <a name="GetAccountantHubPlanId"></a> 
+
+ Returns the ID for the Microsoft Dynamics 365 - Accountant Hub plan.
+ 
+
+#### Syntax
+```
+procedure GetAccountantHubPlanId(): Guid
+```
+#### Return Value
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
+
+The ID for the Microsoft Dynamics 365 - Accountant Hub plan.
+### GetHelpDeskPlanId (Method) <a name="GetHelpDeskPlanId"></a> 
+
+ Returns the ID for the Delegated Helpdesk agent - Partner plan.
+ 
+
+#### Syntax
+```
+procedure GetHelpDeskPlanId(): Guid
+```
+#### Return Value
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
+
+The ID for the Delegated Helpdesk agent - Partner plan.
+### GetInfrastructurePlanId (Method) <a name="GetInfrastructurePlanId"></a> 
+
+ Returns the ID for the D365 Business Central Infrastructure plan.
+ 
+
+#### Syntax
+```
+procedure GetInfrastructurePlanId(): Guid
+```
+#### Return Value
+*[Guid](https://go.microsoft.com/fwlink/?linkid=2210122)*
+
+The ID for the D365 Business Central Infrastructure plan.
 
 ## Plan Upgrade Tag (Codeunit 9058)
 
@@ -563,7 +817,7 @@ The ID for the Finance and Operations, Device plan.
 procedure GetAddDeviceISVEmbUpgradeTag(): Code[250]
 ```
 #### Return Value
-*[Code[250]](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/methods-auto/code/code-data-type)*
+*[Code[250]](https://go.microsoft.com/fwlink/?linkid=2210241)*
 
 The device upgrade tag.
 
@@ -588,6 +842,12 @@ The device upgrade tag.
 ## User Plan Members FactBox (Page 9823)
 
  ListPart page that contains all the user plan members.
+ 
+
+
+## User Plans FactBox (Page 9826)
+
+ ListPart page that contains the plans assigned to users.
  
 
 

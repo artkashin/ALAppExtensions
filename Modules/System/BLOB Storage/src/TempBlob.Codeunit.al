@@ -9,9 +9,20 @@
 codeunit 4100 "Temp Blob"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         TempBlobImpl: Codeunit "Temp Blob Impl.";
+
+    /// <summary>
+    /// Creates an InStream object with default encoding for the TempBlob. This enables you to read data from the TempBlob.
+    /// </summary>
+    /// <returns>The InStream variable with the BLOB content attached.</returns>
+    procedure CreateInStream() InStream: InStream
+    begin
+        TempBlobImpl.CreateInStream(InStream);
+    end;
 
     /// <summary>
     /// Creates an InStream object with default encoding for the TempBlob. This enables you to read data from the TempBlob.
@@ -20,6 +31,16 @@ codeunit 4100 "Temp Blob"
     procedure CreateInStream(var InStream: InStream)
     begin
         TempBlobImpl.CreateInStream(InStream);
+    end;
+
+    /// <summary>
+    /// Creates an InStream object with default encoding for the TempBlob. This enables you to read data from the TempBlob.
+    /// </summary>
+    /// <param name="Encoding">The text encoding to use.</param>
+    /// <returns>The InStream variable with the BLOB content attached.</returns>
+    procedure CreateInStream(Encoding: TextEncoding) InStream: InStream
+    begin
+        TempBlobImpl.CreateInStream(InStream, Encoding);
     end;
 
     /// <summary>
@@ -35,10 +56,29 @@ codeunit 4100 "Temp Blob"
     /// <summary>
     /// Creates an OutStream object with default encoding for the TempBlob. This enables you to write data to the TempBlob.
     /// </summary>
+    /// <returns>The OutStream variable passed which the BLOB content will be attached.</returns>
+    procedure CreateOutStream() OutStream: OutStream
+    begin
+        TempBlobImpl.CreateOutStream(OutStream);
+    end;
+
+    /// <summary>
+    /// Creates an OutStream object with default encoding for the TempBlob. This enables you to write data to the TempBlob.
+    /// </summary>
     /// <param name="OutStream">The OutStream variable passed as a VAR to which the BLOB content will be attached.</param>
     procedure CreateOutStream(var OutStream: OutStream)
     begin
         TempBlobImpl.CreateOutStream(OutStream);
+    end;
+
+    /// <summary>
+    /// Creates an OutStream object with the specified encoding for the TempBlob. This enables you to write data to the TempBlob.
+    /// </summary>
+    /// <param name="Encoding">The text encoding to use.</param>
+    /// <returns>The OutStream variable with the BLOB content attached.</returns>
+    procedure CreateOutStream(Encoding: TextEncoding) OutStream: OutStream
+    begin
+        TempBlobImpl.CreateOutStream(OutStream, Encoding);
     end;
 
     /// <summary>
@@ -102,7 +142,7 @@ codeunit 4100 "Temp Blob"
     /// <summary>
     /// Copies the value of the FieldRef to the TempBlob.
     /// </summary>
-    /// <param name="FieldRef">A FieldRef variable attached to a field for a record.</param>
+    /// <param name="BlobFieldRef">A FieldRef variable attached to a field for a record.</param>
     procedure FromFieldRef(BlobFieldRef: FieldRef)
     begin
         TempBlobImpl.FromFieldRef(BlobFieldRef);
@@ -111,7 +151,7 @@ codeunit 4100 "Temp Blob"
     /// <summary>
     /// Copies the value of the TempBlob to the specified FieldRef.
     /// </summary>
-    /// <param name="FieldRef">A FieldRef variable attached to a field for a record.</param>
+    /// <param name="BlobFieldRef">A FieldRef variable attached to a field for a record.</param>
     procedure ToFieldRef(var BlobFieldRef: FieldRef)
     begin
         TempBlobImpl.ToFieldRef(BlobFieldRef);

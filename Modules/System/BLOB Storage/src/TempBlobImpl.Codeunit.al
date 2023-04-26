@@ -6,9 +6,13 @@
 codeunit 4107 "Temp Blob Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
+#pragma warning disable AA0073
         TempBlob: Record "Temp Blob" temporary;
+#pragma warning restore AA0073
 
     procedure CreateInStream(var InStream: InStream)
     begin

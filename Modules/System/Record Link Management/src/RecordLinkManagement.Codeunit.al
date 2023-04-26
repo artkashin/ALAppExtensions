@@ -14,11 +14,12 @@ codeunit 447 "Record Link Management"
     var
         RecordLinkImpl: Codeunit "Record Link Impl.";
 
-        /// <summary>
-        /// Copies all the links from one record to the other and sets Notify to FALSE for them.
-        /// </summary>
-        /// <param name="FromRecord">The source record from which links are copied.</param>
-        /// <param name="ToRecord">The destination record to which links are copied.</param>
+    /// <summary>
+    /// Copies all the links from one record to the other and sets Notify to FALSE for them.
+    /// </summary>
+    /// <raises>OnAfterCopyLinks</raises>
+    /// <param name="FromRecord">The source record from which links are copied.</param>
+    /// <param name="ToRecord">The destination record to which links are copied.</param>
     procedure CopyLinks(FromRecord: Variant; ToRecord: Variant)
     begin
         RecordLinkImpl.CopyLinks(FromRecord, ToRecord);
@@ -45,11 +46,41 @@ codeunit 447 "Record Link Management"
     end;
 
     /// <summary>
+    /// Removes all record links from all records in the RecVariant within current filters
+    /// </summary>
+    /// <param name="RecVariant">A filtered record. All record links associated with records within the filtered recordset will be deleted.</param>
+    procedure RemoveLinks(RecVariant: Variant)
+    begin
+        RecordLinkImpl.RemoveLinks(RecVariant);
+    end;
+
+    /// <summary>
     /// Iterates over the record link table and removes those with obsolete record ids.
     /// </summary>
     procedure RemoveOrphanedLinks()
     begin
         RecordLinkImpl.RemoveOrphanedLinks();
+    end;
+
+    /// <summary>
+    /// Integration event for before copying links.
+    /// </summary>
+    /// <param name="FromRecord">The source record from which links are copied.</param>
+    /// <param name="ToRecord">The destination record to which links are copied.</param>
+    /// <param name="SkipReset">Out parameter to set if reset of Notify field should be skipped.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeCopyLinks(FromRecord: Variant; ToRecord: Variant; var SkipReset: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event for after copying links from one record to the other.
+    /// </summary>
+    /// <param name="FromRecord">The source record from which links are copied.</param>
+    /// <param name="ToRecord">The destination record to which links are copied.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterCopyLinks(FromRecord: Variant; ToRecord: Variant)
+    begin
     end;
 }
 

@@ -5,8 +5,11 @@
 
 codeunit 9702 "Cues And KPIs Impl."
 {
-    Permissions = TableData "Cue Setup" = r;
+    Permissions = tabledata Field = r,
+                  tabledata "Cue Setup" = rimd;
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         TempGlobalCueSetup: Record "Cue Setup" temporary;
@@ -121,13 +124,20 @@ codeunit 9702 "Cues And KPIs Impl."
     local procedure GetCustomizedCueStyleOption(TableId: Integer; FieldNo: Integer; CueValue: Decimal): Integer
     var
         CueSetup: Record "Cue Setup";
+        CueStyle: Enum "Cues And KPIs Style";
+        Resolved: Boolean;
     begin
+        CuesAndKPIs.OnBeforeGetCustomizedCueStyleOption(TableID, FieldNo, CueValue, CueStyle, Resolved);
+
+        if Resolved then
+            exit(CueStyle.AsInteger());
+
         FindCueSetup(CueSetup, TableId, FieldNo);
         if CueValue < CueSetup."Threshold 1" then
-            exit(CueSetup."Low Range Style");
+            exit(CueSetup."Low Range Style".AsInteger());
         if CueValue > CueSetup."Threshold 2" then
-            exit(CueSetup."High Range Style");
-        exit(CueSetup."Middle Range Style");
+            exit(CueSetup."High Range Style".AsInteger());
+        exit(CueSetup."Middle Range Style".AsInteger());
     end;
 
     local procedure FindCueSetup(var CueSetup: Record "Cue Setup"; TableId: Integer; FieldNo: Integer)
@@ -175,12 +185,12 @@ codeunit 9702 "Cues And KPIs Impl."
         end;
     end;
 
-    procedure ChangeUserForSetupEntry(var RecRef: RecordRef; Company: Text[30]; UserName: Text[50])
+    procedure ChangeUserForSetupEntry(var RecordRef: RecordRef; Company: Text[30]; UserName: Text[50])
     var
         CueSetup: Record "Cue Setup";
     begin
         CueSetup.ChangeCompany(Company);
-        RecRef.SetTable(CueSetup);
+        RecordRef.SetTable(CueSetup);
         CueSetup.Rename(UserName, CueSetup."Table ID", CueSetup."Field No.");
     end;
 
@@ -226,6 +236,16 @@ codeunit 9702 "Cues And KPIs Impl."
         end;
     end;
 
+    procedure PersonalizedCueSetupExistsForCurrentUser(TableID: Integer; FieldID: Integer): Boolean
+    var
+        CueSetup: Record "Cue Setup";
+    begin
+        CueSetup.SetRange("User Name", UserId);
+        CueSetup.SetRange("Table ID", TableID);
+        CueSetup.SetRange("Field No.", FieldID);
+        exit(not CueSetup.IsEmpty);
+    end;
+
     procedure InsertData(TableID: Integer; FieldNo: Integer; LowRangeStyle: Enum "Cues And KPIs Style"; Threshold1: Decimal; MiddleRangeStyle: Enum "Cues And KPIs Style"; Threshold2: Decimal; HighRangeStyle: Enum "Cues And KPIs Style"): Boolean
     var
         CueSetup: Record "Cue Setup";
@@ -242,12 +262,12 @@ codeunit 9702 "Cues And KPIs Impl."
         exit(CueSetup.Insert());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, 2000000004, 'GetCueStyle', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetCueStyle, '', false, false)]
     local procedure GetCueStyle(TableId: Integer; FieldNo: Integer; CueValue: Decimal; var StyleText: Text)
     var
         Style: Enum "Cues And KPIs Style";
     begin
-        Style := GetCustomizedCueStyleOption(TableId, FieldNo, CueValue);
+        Style := "Cues And KPIs Style".FromInteger(GetCustomizedCueStyleOption(TableId, FieldNo, CueValue));
         StyleText := ConvertStyleToStyleText(Style);
     end;
 

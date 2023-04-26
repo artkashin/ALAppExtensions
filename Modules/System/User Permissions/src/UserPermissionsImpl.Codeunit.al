@@ -8,11 +8,15 @@
 codeunit 153 "User Permissions Impl."
 {
     Access = Internal;
-    Permissions = TableData 2000000053 = rimd;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = TableData "Access Control" = rimd,
+                  TableData User = r;
 
     var
         SUPERTok: Label 'SUPER', Locked = true;
         SUPERPermissionErr: Label 'There should be at least one enabled ''SUPER'' user.';
+        SECURITYPermissionSetTxt: Label 'SECURITY', Locked = true;
 
     procedure IsSuper(UserSecurityId: Guid): Boolean
     var
@@ -28,23 +32,28 @@ codeunit 153 "User Permissions Impl."
         exit(not AccessControl.IsEmpty());
     end;
 
-    procedure RemoveSuperPermissions(UserSecurityId: Guid)
+    procedure RemoveSuperPermissions(UserSecurityId: Guid): Boolean
     var
         AccessControl: Record "Access Control";
     begin
         if not IsAnyoneElseSuper(UserSecurityId) then
-            exit;
+            exit(false);
 
         SetSuperFilters(AccessControl);
         AccessControl.SetRange("User Security ID", UserSecurityId);
         AccessControl.DeleteAll(true);
+
+        exit(true);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Access Control", 'OnBeforeRenameEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Access Control", OnBeforeRenameEvent, '', false, false)]
     local procedure CheckSuperPermissionsBeforeRenameAccessControl(var Rec: Record "Access Control"; var xRec: Record "Access Control"; RunTrigger: Boolean)
     var
         EnvironmentInfo: Codeunit "Environment Information";
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         if not EnvironmentInfo.IsSaaS() then
             exit;
 
@@ -57,11 +66,14 @@ codeunit 153 "User Permissions Impl."
         Error(SUPERPermissionErr);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Access Control", 'OnBeforeDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Access Control", OnBeforeDeleteEvent, '', false, false)]
     local procedure CheckSuperPermissionsBeforeDeleteAccessControl(var Rec: Record "Access Control"; RunTrigger: Boolean)
     var
         EnvironmentInfo: Codeunit "Environment Information";
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         if not EnvironmentInfo.IsSaaS() then
             exit;
 
@@ -74,12 +86,15 @@ codeunit 153 "User Permissions Impl."
         if IsAnyoneElseSuper(Rec."User Security ID") then
             exit;
 
-        Error(SUPERPermissionErr)
+        Error(SUPERPermissionErr);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::User, 'OnBeforeModifyEvent', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::User, OnBeforeModifyEvent, '', true, true)]
     local procedure CheckSuperPermissionsBeforeModifyUser(var Rec: Record User; var xRec: Record User; RunTrigger: Boolean)
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         if not IsSuper(Rec."User Security ID") then
             exit;
 
@@ -96,7 +111,7 @@ codeunit 153 "User Permissions Impl."
         Error(SUPERPermissionErr);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::User, 'OnBeforeDeleteEvent', '', true, true)]
+    [EventSubscriber(ObjectType::Table, Database::User, OnBeforeDeleteEvent, '', true, true)]
     local procedure CheckSuperPermissionsBeforeDeleteUser(var Rec: Record User; RunTrigger: Boolean)
     var
         EnvironmentInfo: Codeunit "Environment Information";
@@ -116,15 +131,15 @@ codeunit 153 "User Permissions Impl."
         Error(SUPERPermissionErr);
     end;
 
-    local procedure SetSuperFilters(var Rec: Record "Access Control")
+    local procedure SetSuperFilters(var AccessControlRec: Record "Access Control")
     begin
-        Rec.SetRange("Role ID", SUPERTok);
-        Rec.SetFilter("Company Name", '='''''); // Company Name value is an empty string
+        AccessControlRec.SetRange("Role ID", SUPERTok);
+        AccessControlRec.SetFilter("Company Name", '='''''); // Company Name value is an empty string
     end;
 
-    local procedure IsSuper(var Rec: Record "Access Control"): Boolean
+    local procedure IsSuper(var AccessControlRec: Record "Access Control"): Boolean
     begin
-        exit((Rec."Role ID" = SUPERTok) and (Rec."Company Name" = ''));
+        exit((AccessControlRec."Role ID" = SUPERTok) and (AccessControlRec."Company Name" = ''));
     end;
 
     local procedure IsAnyoneElseSuper(UserSecurityId: Guid): Boolean
@@ -159,6 +174,89 @@ codeunit 153 "User Permissions Impl."
     begin
         // Sync Deamon is the only user with license "External User"
         exit(User."License Type" = User."License Type"::"External User");
+    end;
+
+    procedure CanManageUsersOnTenant(UserSID: Guid) Result: Boolean
+    var
+        AccessControl: Record "Access Control";
+        User: Record User;
+    begin
+        if User.IsEmpty() then
+            exit(true);
+
+        OnCanManageUsersOnTenant(UserSID, Result);
+        if Result then
+            exit;
+
+        if IsSuper(UserSID) then
+            exit(true);
+
+        AccessControl.SetRange("Role ID", SECURITYPermissionSetTxt);
+        AccessControl.SetFilter("Company Name", '%1|%2', '', CompanyName);
+        AccessControl.SetRange("User Security ID", UserSID);
+        exit(not AccessControl.IsEmpty());
+    end;
+
+#if not CLEAN22
+    procedure HasUserCustomPermissions(UserSecId: Guid): Boolean
+    var
+        AccessControl: Record "Access Control";
+        BlankGuid: Guid;
+    begin
+        // Check if the user is assigned any custom permission sets
+        AccessControl.SetRange("User Security ID", UserSecId);
+        AccessControl.SetRange(Scope, AccessControl.Scope::Tenant);
+        AccessControl.SetRange("App ID", BlankGuid);
+        if not AccessControl.IsEmpty() then
+            exit(true);
+    end;
+#endif
+
+    procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityId);
+        AccessControl.SetRange("Role ID", RoleID);
+        AccessControl.SetFilter("Company Name", '%1|%2', '', Company);
+        AccessControl.SetRange(Scope, ItemScope);
+        AccessControl.SetRange("App ID", AppId);
+
+        exit(not AccessControl.IsEmpty());
+    end;
+
+    internal procedure GetEffectivePermission(UserSecurityIdToCheck: Guid; CompanyNameToCheck: Text; PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport","MenuSuite","Page","Query","System",,,,,,,,,; ObjectId: Integer): Text
+    var
+        NavUserAccountHelper: DotNet NavUserAccountHelper;
+    begin
+        exit(NavUserAccountHelper.GetEffectivePermissionForObject(UserSecurityIdToCheck, CompanyNameToCheck, PermissionObjectType, ObjectId));
+    end;
+
+    procedure GetEffectivePermission(PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport","MenuSuite","Page","Query","System",,,,,,,,,; ObjectId: Integer) TempExpandedPermission: Record "Expanded Permission" temporary
+    var
+        PermissionMask: Text;
+    begin
+        TempExpandedPermission."Object Type" := PermissionObjectType;
+        TempExpandedPermission."Object ID" := ObjectId;
+        PermissionMask := GetEffectivePermission(UserSecurityId(), CompanyName(), PermissionObjectType, ObjectId);
+        Evaluate(TempExpandedPermission."Read Permission", SelectStr(1, PermissionMask));
+        Evaluate(TempExpandedPermission."Insert Permission", SelectStr(2, PermissionMask));
+        Evaluate(TempExpandedPermission."Modify Permission", SelectStr(3, PermissionMask));
+        Evaluate(TempExpandedPermission."Delete Permission", SelectStr(4, PermissionMask));
+        Evaluate(TempExpandedPermission."Execute Permission", SelectStr(5, PermissionMask));
+    end;
+
+    /// <summary>
+    /// An event that indicates that subscribers should set the result that should be returned when the CanManageUsersOnTenant is called.
+    /// </summary>
+    /// <remarks>
+    /// Subscribe to this event from tests if you need to verify a different flow.
+    /// This feature is for testing and is subject to a different SLA than production features.
+    /// Do not use this event in a production environment. This should be subscribed to only in tests.
+    /// </remarks>
+    [InternalEvent(false)]
+    local procedure OnCanManageUsersOnTenant(UserSID: Guid; var Result: Boolean)
+    begin
     end;
 }
 

@@ -6,6 +6,11 @@
 codeunit 1753 "Data Classification Mgt. Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Data Sensitivity" = rimd,
+                  tabledata Field = r,
+                  tabledata "Table Relations Metadata" = r;
 
     var
         DataSensitivityOptionStringTxt: Label 'Unclassified,Sensitive,Personal,Company Confidential,Normal', Comment = 'It needs to be translated as the field Data Sensitivity on Page 1751 Data Classification WorkSheet and field Data Sensitivity of Table 1180 Data Privacy Entities';
@@ -58,7 +63,7 @@ codeunit 1753 "Data Classification Mgt. Impl."
     procedure FindSimilarFieldsInRelatedTables(var DataSensitivity: Record "Data Sensitivity")
     var
         TempDataPrivacyEntities: Record "Data Privacy Entities" temporary;
-        RecRef: RecordRef;
+        RecordRef: RecordRef;
         FieldCaptionFilter: Text;
         TableNoFilter: Text;
     begin
@@ -73,8 +78,8 @@ codeunit 1753 "Data Classification Mgt. Impl."
 
             FilterDataSensitivityByFieldCaption(DataSensitivity, FieldCaptionFilter);
 
-            RecRef.GetTable(TempDataPrivacyEntities);
-            TableNoFilter := GetFilterTextForFieldValuesInTable(RecRef, TempDataPrivacyEntities.FieldNo("Table No."));
+            RecordRef.GetTable(TempDataPrivacyEntities);
+            TableNoFilter := GetFilterTextForFieldValuesInTable(RecordRef, TempDataPrivacyEntities.FieldNo("Table No."));
 
             DataSensitivity.SetFilter("Table No", TableNoFilter);
 
@@ -86,10 +91,11 @@ codeunit 1753 "Data Classification Mgt. Impl."
     local procedure GetFieldCaptionFilterText(var DataSensitivity: Record "Data Sensitivity"): Text
     var
         FieldCaptionFilter: Text;
+        FieldCaptionFilterLbl: Label '''*%1*''|', Comment = '%1 - Filter', Locked = true;
     begin
         repeat
             DataSensitivity.CalcFields("Field Caption");
-            FieldCaptionFilter += StrSubstNo('''*%1*''|', DelChr(DataSensitivity."Field Caption", '=', ''''));
+            FieldCaptionFilter += StrSubstNo(FieldCaptionFilterLbl, DelChr(DataSensitivity."Field Caption", '=', ''''));
         until DataSensitivity.Next() = 0;
 
         FieldCaptionFilter := DelChr(FieldCaptionFilter, '>', '|');
@@ -101,6 +107,7 @@ codeunit 1753 "Data Classification Mgt. Impl."
     var
         PrevTableNo: Integer;
     begin
+        PrevTableNo := 0;
         repeat
             if PrevTableNo <> DataSensitivity."Table No" then begin
                 GetRelatedTablesForTable(TempDataPrivacyEntities, DataSensitivity."Table No");
@@ -132,14 +139,15 @@ codeunit 1753 "Data Classification Mgt. Impl."
     procedure GetTableNoFilterForTablesWhoseNameContains(Name: Text): Text
     var
         "Field": Record "Field";
-        RecRef: RecordRef;
+        RecordRef: RecordRef;
+        TableNameFilterLbl: Label '*%1*', Comment = '%1 - Table name', Locked = true;
     begin
         Field.SetRange(DataClassification, Field.DataClassification::CustomerContent);
         Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
-        Field.SetFilter(TableName, StrSubstNo('*%1*', Name));
+        Field.SetFilter(TableName, StrSubstNo(TableNameFilterLbl, Name));
 
-        RecRef.GetTable(Field);
-        exit(GetFilterTextForFieldValuesInTable(RecRef, Field.FieldNo(TableNo)));
+        RecordRef.GetTable(Field);
+        exit(GetFilterTextForFieldValuesInTable(RecordRef, Field.FieldNo(TableNo)));
     end;
 
     procedure PopulateFieldValue(FieldRef: FieldRef; var FieldContentBuffer: Record "Field Content Buffer")
@@ -323,23 +331,26 @@ codeunit 1753 "Data Classification Mgt. Impl."
     end;
 
     procedure GetSensitiveFields(var "Field": Record "Field")
+    var
+        DataClassificationFilterLbl: Label '%1|%2|%3', Comment = '%1 - Customer content, %2 - EUII, %3 = EUPI', Locked = true;
     begin
         Field.SetFilter(
           DataClassification,
-          StrSubstNo('%1|%2|%3',
+          StrSubstNo(DataClassificationFilterLbl,
             Field.DataClassification::CustomerContent,
             Field.DataClassification::EndUserIdentifiableInformation,
             Field.DataClassification::EndUserPseudonymousIdentifiers));
     end;
 
-    local procedure GetFilterTextForFieldValuesInTable(var RecRef: RecordRef; FieldNo: Integer): Text
+    local procedure GetFilterTextForFieldValuesInTable(var RecordRef: RecordRef; FieldNo: Integer): Text
     var
         FilterText: Text;
+        FilterTextOrLbl: Label '%1|%2', Comment = '%1 - Filter text, %2 - Field ref', Locked = true;
     begin
-        if RecRef.FindSet() then begin
+        if RecordRef.FindSet() then begin
             repeat
-                FilterText := StrSubstNo('%1|%2', FilterText, RecRef.Field(FieldNo));
-            until RecRef.Next() = 0;
+                FilterText := StrSubstNo(FilterTextOrLbl, FilterText, RecordRef.Field(FieldNo));
+            until RecordRef.Next() = 0;
 
             // remove the first vertical bar from the filter text
             FilterText := DelChr(FilterText, '<', '|');
@@ -362,10 +373,11 @@ codeunit 1753 "Data Classification Mgt. Impl."
     var
         DataSensitivity: Record "Data Sensitivity";
         DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
+        DataClassificationFilterLbl: Label '%1|%2', Comment = '%1 - Personal data sensitivity, %2 - Sensitive data sensitivity', Locked = true;
     begin
         DataSensitivity.SetRange("Company Name", CompanyName());
         DataSensitivity.SetRange("Table No", TableNo);
-        DataSensitivity.SetFilter("Data Sensitivity", StrSubstNo('%1|%2',
+        DataSensitivity.SetFilter("Data Sensitivity", StrSubstNo(DataClassificationFilterLbl,
             DataSensitivity."Data Sensitivity"::Personal,
             DataSensitivity."Data Sensitivity"::Sensitive));
         DataClassificationMgtImpl.FindSimilarFieldsInRelatedTables(DataSensitivity);
